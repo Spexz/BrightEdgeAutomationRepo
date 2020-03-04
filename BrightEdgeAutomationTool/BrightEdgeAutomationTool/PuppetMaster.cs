@@ -36,5 +36,10 @@ namespace BrightEdgeAutomationTool
 
             }
         }
+
+        public static void RunProcess()
+        {
+
+        }
     }
 }
