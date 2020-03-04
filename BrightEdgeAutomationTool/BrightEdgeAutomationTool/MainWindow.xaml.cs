@@ -132,7 +132,7 @@ namespace BrightEdgeAutomationTool
 
         private void start_Click(object sender, RoutedEventArgs e)
         {
-
+            PuppetMaster.RunProcess();
         }
 
         private void stopProcess_Click(object sender, RoutedEventArgs e)
