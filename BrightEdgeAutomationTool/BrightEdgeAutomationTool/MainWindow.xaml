@@ -1,0 +1,218 @@
+﻿<Window x:Class="BrightEdgeAutomationTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BrightEdgeAutomationTool"
+        mc:Ignorable="d"
+        Title="BrightEdge Tool" Height="450" Width="800">
+
+    <Window.Resources>
+
+        <ResourceDictionary>
+
+            <SolidColorBrush x:Key="tool-green" Color="#27ae60" />
+            <SolidColorBrush x:Key="tool-dark-green" Color="#2ecc71" />
+            <SolidColorBrush x:Key="tool-light-green" Color="#74E4A3" />
+
+
+            <Style TargetType="ListBox">
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+
+
+            <Style TargetType="Button">
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="FontFamily" Value="Verdana"/>
+                <Setter Property="FontSize" Value="14px"/>
+                <Setter Property="Foreground" Value="White" />
+
+                <Setter Property="Background" Value="#27ae60" />
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                CornerRadius="10"
+                                BorderThickness="1"
+                                Padding="5"
+                                BorderBrush="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                </ContentPresenter>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#2ecc71"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="#74E4A3"/>
+                    </Trigger>
+                </Style.Triggers>
+
+            </Style>
+
+            <Style TargetType="Button" x:Key="deleteButton">
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="FontFamily" Value="Verdana"/>
+                <Setter Property="FontSize" Value="14px"/>
+                <Setter Property="Foreground" Value="White" />
+
+                <Setter Property="Background" Value="#c0392b" />
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                CornerRadius="5"
+                                BorderThickness="1"
+                                Padding="5"
+                                BorderBrush="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                </ContentPresenter>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#e74c3c"/>
+                    </Trigger>
+                </Style.Triggers>
+
+            </Style>
+
+            <Style TargetType="TextBox">
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="12" />
+            </Style>
+
+            <Style TargetType="Label">
+                <Setter Property="Foreground" Value="#777" />
+            </Style>
+
+            <Style TargetType="TextBlock" x:Name="spin">
+            </Style>
+
+            <!--<FontFamily x:Key="FontAwesome-Solid">pack://application:,,,/fonts/#Font Awesome 5 Free Solid</FontFamily>-->
+            <FontFamily x:Key="FontAwesome-Solid">Fonts/#Font Awesome 5 Free Solid</FontFamily>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Style.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80" />
+            <RowDefinition Height="150" />
+            <RowDefinition Height="70" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Height="70" VerticalAlignment="Center" Orientation="Horizontal"
+                    Grid.ColumnSpan="2" HorizontalAlignment="Center"
+                    Margin="0">
+            <!--<Image Width="50" Margin="0 0 10 0">
+                <Image.Source>
+                    <BitmapImage  UriSource="/images/adword64.png" />
+                </Image.Source>
+            </Image>-->
+            <TextBlock
+                VerticalAlignment="Center" 
+                FontSize="30"
+                Foreground="#666">BrightEdge Tool</TextBlock>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+            <Button x:Name="launchChrome" Grid.Row="1" Width="100" Height="80"
+                    Margin="20 0"
+                Click="launchChrome_Click">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
+                       Text="&#xf135;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                    <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Start Chrome</TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="1" x:Name="start" Grid.Row="1" Width="120" Height="100"
+                    Margin="20 0"
+                Click="start_Click">
+                <Grid>
+
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
+                       Text="&#xf04b;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                        <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Start</TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Button>
+
+
+            <Button x:Name="stopProcess" Grid.Row="1" Width="100" Height="80"
+                    Margin="20 0" IsEnabled="False"
+                Click="stopProcess_Click">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
+                       Text="&#xf04d;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                    <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Stop</TextBlock>
+                </StackPanel>
+            </Button>
+
+        </StackPanel>
+
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
+            <!--<TextBlock FontSize="60" Foreground="{StaticResource tool-light-green}" HorizontalAlignment="Center"
+                       Text="&#xf1ce;" FontFamily="{StaticResource FontAwesome-Solid}" />-->
+
+            <TextBlock RenderTransformOrigin=".5,.5" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Name="SpinnerText" Visibility="Collapsed" Padding="0" Margin="0"
+                          FontSize="60" Foreground="{StaticResource tool-light-green}" 
+                          Text="&#xf1ce;" FontFamily="{StaticResource FontAwesome-Solid}"
+                           Grid.ColumnSpan="2" >
+
+                <TextBlock.RenderTransform>
+                    <RotateTransform x:Name="SpinnerRotateTransform" Angle="0" CenterX="0.5" CenterY="0.5"/>
+                </TextBlock.RenderTransform>
+
+
+                <TextBlock.Triggers>
+                    <EventTrigger RoutedEvent="TextBlock.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                            Storyboard.TargetName="SpinnerRotateTransform" 
+                                            Storyboard.TargetProperty="(RotateTransform.Angle)"
+                                            From="0.0" To="360" Duration="0:0:1" 
+                                            RepeatBehavior="Forever" AccelerationRatio="0.4" DecelerationRatio="0.6" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </TextBlock.Triggers>
+            </TextBlock>
+        </Grid>
+
+        <TextBox Name="status"
+            Margin="5" Padding="10" Foreground="#BBB"
+            Grid.ColumnSpan="2"
+            Grid.Row="3" BorderBrush="#eee"
+            HorizontalAlignment="center"
+            VerticalContentAlignment="Top"
+            TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" 
+            AcceptsReturn="True"
+            Width="525" IsReadOnly="True"/>
+    </Grid>
+</Window>
