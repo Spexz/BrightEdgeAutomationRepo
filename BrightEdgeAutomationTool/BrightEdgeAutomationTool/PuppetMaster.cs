@@ -38,12 +38,17 @@ namespace BrightEdgeAutomationTool
             }
         }
 
-        public static void RunProcess()
+        public static void RunProcess(string keywords, string location)
         {
-            var keywords = "bangkok hotel\nbangkok hotels\nhotel bangkok\nhotels bangkok\nhotel in bangkok\nhotels in bangkok\nbangkok thailand hotel\nbangkok thailand hotels\nhotel bangkok thailand\nhotels bangkok thailand\nhotel in bangkok thailand\nhotels in bangkok thailand\nsathorn hotel\nsathorn hotels\nhotel sathorn";
-            var location = "Thailand";
+
+            if (Driver.ElementExist(By.XPath("//div[a/button/span[contains(., 'All Queries')]]")))
+            {
+                var allQueries = Driver.FindElement(By.Id("//div[a/button/span[contains(., 'All Queries')]]"), 20);
+                Click(allQueries);
+            }
 
             var keywordField = Driver.FindElement(By.Id("keywords"), 20);
+            keywordField.Clear();
             Click(keywordField);
             System.Windows.Clipboard.SetText(keywords);
             keywordField.SendKeys(OpenQA.Selenium.Keys.Control + "v");
@@ -82,7 +87,7 @@ namespace BrightEdgeAutomationTool
 
                     if (String.IsNullOrEmpty(initialDetailsUrl) && !String.IsNullOrEmpty(detailsUrl))
                         return true;
-                    else if (!initialDetailsUrl.Equals(detailsUrl))
+                    else if (!initialDetailsUrl.Equals(detailsUrl) && detailsUrl != null)
                         return true;
                     else
                         return false;
@@ -106,8 +111,8 @@ namespace BrightEdgeAutomationTool
             
 
             // Now download the csv
-            var downloadButton = Driver.FindElement(By.XPath("//button[span[contains(text(), 'd')]]"), 20);
-            Click(viewDetailsButton);
+            var downloadButton = Driver.FindElement(By.XPath("//div[contains(@class, 'popover__target') and span/button[span[contains(text(), 'd')]]]"), 20);
+            Click(downloadButton);
         }
 
 
