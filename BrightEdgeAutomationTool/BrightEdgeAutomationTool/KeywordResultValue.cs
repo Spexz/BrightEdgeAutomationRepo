@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BrightEdgeAutomationTool
 {
-    class KeywordResultValue
+    public class KeywordResultValue
     {
         public string Keyword;
         public decimal Volume;
@@ -18,6 +18,9 @@ namespace BrightEdgeAutomationTool
 
             KeywordResultValue kValues = null;
             string[] values = csvLine.Split(sep.ToCharArray());
+
+            if (Convert.ToDecimal(values[1]) == 0)
+                return kValues;
 
 
             kValues = new KeywordResultValue();

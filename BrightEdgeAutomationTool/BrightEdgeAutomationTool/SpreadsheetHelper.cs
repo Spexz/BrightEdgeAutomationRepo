@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
@@ -51,11 +52,16 @@ namespace BrightEdgeAutomationTool
 
             var keywordsNotNull = keywordsRaw.Where(c => {
                 if (!string.IsNullOrEmpty(c))
+                {
+                    if (c.Equals("0"))
+                        return false;
                     return true;
+                }
+                   
                 return false;
             });
 
-            for (int i = 0; i < keywordsNotNull.Count(); i += 500) //should be 1000
+            for (int i = 0; i < keywordsNotNull.Count(); i += 1000) //should be 1000
             {
                 //List<string> myNewString = tempSMSNoList.Skip(i * groupSize).Take(groupSize).ToList();
                 var keywordListStr = keywordsNotNull.Skip(i == 0 ? 0 : i).Take(1000).Aggregate((x, y) => x + "\n" + y);
@@ -64,6 +70,95 @@ namespace BrightEdgeAutomationTool
 
             return keywordList;
         }
+
+
+
+
+        public static bool CreateResultSheet(List<KeywordResultValue> keywordStats)
+        {
+            var deleteResult = DeleteWorksheetPart("Results");
+
+
+            // Add a blank WorksheetPart.
+            WorksheetPart newWorksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            newWorksheetPart.Worksheet = new Worksheet(new SheetData());
+
+            Sheets sheets = workbookPart.Workbook.GetFirstChild<Sheets>();
+            string relationshipId = workbookPart.GetIdOfPart(newWorksheetPart);
+
+
+            // Get a unique ID for the new worksheet.
+            uint sheetId = 1;
+            if (sheets.Elements<Sheet>().Count() > 0)
+            {
+                sheetId = sheets.Elements<Sheet>().Select(s => s.SheetId.Value).Max() + 1;
+            }
+
+            // Give the new worksheet a name.
+            string sheetName = "Results";
+
+            // Append the new worksheet and associate it with the workbook.
+            Sheet sheet = new Sheet() { Id = relationshipId, SheetId = sheetId, Name = sheetName };
+
+            //sheets.Append(sheet);
+            sheets.InsertAt(sheet, 1);
+            // Save the new worksheet.
+            newWorksheetPart.Worksheet.Save();
+
+
+            // Get the SharedStringTablePart. If it does not exist, create a new one.
+            SharedStringTablePart shareStringPart;
+            if (workbookPart.GetPartsOfType<SharedStringTablePart>().Count() > 0)
+            {
+                shareStringPart = workbookPart.GetPartsOfType<SharedStringTablePart>().First();
+            }
+            else
+            {
+                shareStringPart = workbookPart.AddNewPart<SharedStringTablePart>();
+            }
+
+
+            for (uint i = 0; i < keywordStats.Count(); i++)
+            {
+                Cell statB = InsertCellInWorksheet("B", i + 2, newWorksheetPart);
+                Cell statC = InsertCellInWorksheet("C", i + 2, newWorksheetPart);
+
+                // Insert the text into the SharedStringTablePart.
+                var index = InsertSharedStringItem(keywordStats.ElementAt((int)i).Keyword, shareStringPart);
+                // Set the value of cell B*
+                statB.CellValue = new CellValue(index.ToString());
+                statB.DataType = new EnumValue<CellValues>(CellValues.SharedString);
+                
+                statC.CellValue = new CellValue(keywordStats.ElementAt((int)i).Volume.ToString());
+                statC.DataType = new EnumValue<CellValues>(CellValues.Number);
+            }
+
+
+            // Save the new worksheet.
+            newWorksheetPart.Worksheet.Save();
+
+
+
+            return true;
+        }
+
+        public static bool DeleteWorksheetPart(string sheetName)
+        {
+            var resultSheet = workbookPart.Workbook.Descendants<Sheet>().FirstOrDefault(s => sheetName.Equals(s.Name));
+            if (resultSheet == null)
+                return false;
+
+            string relId = resultSheet.Id;
+
+            // Remove the sheet reference from the workbook.
+            var worksheetPart = (WorksheetPart)(workbookPart.GetPartById(relId));
+            resultSheet.Remove();
+
+            // Delete the worksheet part.
+            workbookPart.DeletePart(worksheetPart);
+            return true;
+        }
+
 
         public static WorksheetPart GetWorksheetPart(WorkbookPart workbookPart, string sheetName)
         {
@@ -152,6 +247,83 @@ namespace BrightEdgeAutomationTool
             }
 
             return value;
+        }
+
+
+        // Given a column name, a row index, and a WorksheetPart, inserts a cell into the worksheet. 
+        // If the cell already exists, returns it. 
+        private static Cell InsertCellInWorksheet(string columnName, uint rowIndex, WorksheetPart worksheetPart)
+        {
+            Worksheet worksheet = worksheetPart.Worksheet;
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            string cellReference = columnName + rowIndex;
+
+            // If the worksheet does not contain a row with the specified row index, insert one.
+            Row row;
+            if (sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).Count() != 0)
+            {
+                row = sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).First();
+            }
+            else
+            {
+                row = new Row() { RowIndex = rowIndex };
+                sheetData.Append(row);
+            }
+
+            // If there is not a cell with the specified column name, insert one.  
+            if (row.Elements<Cell>().Where(c => c.CellReference.Value == columnName + rowIndex).Count() > 0)
+            {
+                return row.Elements<Cell>().Where(c => c.CellReference.Value == cellReference).First();
+            }
+            else
+            {
+                // Cells must be in sequential order according to CellReference. Determine where to insert the new cell.
+                Cell refCell = null;
+                foreach (Cell cell in row.Elements<Cell>())
+                {
+                    if (string.Compare(cell.CellReference.Value, cellReference, true) > 0)
+                    {
+                        refCell = cell;
+                        break;
+                    }
+                }
+
+                Cell newCell = new Cell() { CellReference = cellReference };
+                row.InsertBefore(newCell, refCell);
+
+                worksheet.Save();
+                return newCell;
+            }
+        }
+
+        // Given text and a SharedStringTablePart, creates a SharedStringItem with the specified text 
+        // and inserts it into the SharedStringTablePart. If the item already exists, returns its index.
+        private static int InsertSharedStringItem(string text, SharedStringTablePart shareStringPart)
+        {
+            // If the part does not contain a SharedStringTable, create one.
+            if (shareStringPart.SharedStringTable == null)
+            {
+                shareStringPart.SharedStringTable = new SharedStringTable();
+            }
+
+            int i = 0;
+
+            // Iterate through all the items in the SharedStringTable. If the text already exists, return its index.
+            foreach (SharedStringItem item in shareStringPart.SharedStringTable.Elements<SharedStringItem>())
+            {
+                if (item.InnerText == text)
+                {
+                    return i;
+                }
+
+                i++;
+            }
+
+            // The text does not exist in the part. Create the SharedStringItem and return its index.
+            shareStringPart.SharedStringTable.AppendChild(new SharedStringItem(new DocumentFormat.OpenXml.Spreadsheet.Text(text)));
+            shareStringPart.SharedStringTable.Save();
+
+            return i;
         }
 
 

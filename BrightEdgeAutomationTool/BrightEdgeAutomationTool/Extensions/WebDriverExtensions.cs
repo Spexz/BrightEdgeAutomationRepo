@@ -9,9 +9,9 @@ namespace BrightEdgeAutomationTool
     {
         public static IWebElement FindElement(this IWebDriver driver, By by, int timeoutInSeconds)
         {
-            Thread.Sleep(1500);
+            Thread.Sleep(1000);
             
-            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutInSeconds));  //15
             Func<IWebDriver, IWebElement> waitForElement = new Func<IWebDriver, IWebElement>((IWebDriver Web) =>
             {
                 try

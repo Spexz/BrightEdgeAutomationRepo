@@ -5,7 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BrightEdgeAutomationTool"
         mc:Ignorable="d"
-        Title="BrightEdge Tool" Height="450" Width="800">
+        Title="BrightEdge Tool" Height="600" MinHeight="400"
+        Width="550" MaxWidth="555" MinWidth="555"
+        Closed="Window_Closed" 
+        WindowStartupLocation="CenterScreen" Icon="images/automation-64.ico">
 
     <Window.Resources>
 
@@ -87,9 +90,107 @@
 
             </Style>
 
-            <Style TargetType="TextBox">
+            <Style TargetType="Button" x:Key="saveSettingsButton">
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="FontFamily" Value="Verdana"/>
+                <Setter Property="FontSize" Value="14px"/>
+                <Setter Property="Foreground" Value="White" />
+
+                <Setter Property="Background" Value="#229552" />
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                CornerRadius="10"
+                                BorderThickness="1"
+                                Padding="5"
+                                BorderBrush="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                </ContentPresenter>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <!--<Setter Property="Background" Value="#1f874a"/>-->
+                        <Setter Property="Button.Effect">
+                            <Setter.Value>
+                                <DropShadowEffect Color="Black" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.7" />
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="#28b062"/>
+                    </Trigger>
+                </Style.Triggers>
+
+            </Style>
+
+            <Style TargetType="TextBox" x:Key="input-field">
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="FontSize" Value="12" />
+                <Setter Property="Height" Value="30" />
+                <Setter Property="Background" Value="White" />
+                <Setter Property="Padding" Value="5 0" />
+                <Setter Property="Foreground" Value="#666" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type TextBoxBase}">
+                            <Border Background="{TemplateBinding Background}"   
+                                 x:Name="Bd" BorderBrush="Transparent" 
+                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                <ScrollViewer x:Name="PART_ContentHost"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" TargetName="Bd"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                </Trigger>
+                                <Trigger Property="Width" Value="Auto">
+                                    <Setter Property="MinWidth" Value="100"/>
+                                </Trigger>
+                                <Trigger Property="Height" Value="Auto">
+                                    <Setter Property="MinHeight" Value="20"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="PasswordBox" x:Key="password-field">
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Height" Value="30" />
+                <Setter Property="Background" Value="White" />
+                <Setter Property="Padding" Value="5 0" />
+                <Setter Property="Foreground" Value="#666" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type PasswordBox}">
+                            <Border Background="{TemplateBinding Background}"   
+                                 x:Name="Bd" BorderBrush="Transparent" 
+                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                <ScrollViewer x:Name="PART_ContentHost"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" TargetName="Bd"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                </Trigger>
+                                <Trigger Property="Width" Value="Auto">
+                                    <Setter Property="MinWidth" Value="100"/>
+                                </Trigger>
+                                <Trigger Property="Height" Value="Auto">
+                                    <Setter Property="MinHeight" Value="20"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style TargetType="Label">
@@ -102,6 +203,24 @@
             <!--<FontFamily x:Key="FontAwesome-Solid">pack://application:,,,/fonts/#Font Awesome 5 Free Solid</FontFamily>-->
             <FontFamily x:Key="FontAwesome-Solid">Fonts/#Font Awesome 5 Free Solid</FontFamily>
 
+            <Storyboard x:Key="sbShowRightMenu" >
+                <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,-300,0" To="0,0,0,0" DecelerationRatio=".5" Duration="0:0:0.6" />
+            </Storyboard>
+            <Storyboard x:Key="sbHideRightMenu">
+                <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,0" To="0,0,-300,0" AccelerationRatio=".5" Duration="0:0:0.6" />
+            </Storyboard>
+
+
+            
+            <Style TargetType="TextBox" x:Key="input-">
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Height" Value="50" />
+
+            </Style>
+
+
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Style.xaml"/>
             </ResourceDictionary.MergedDictionaries>
@@ -109,110 +228,194 @@
 
         </ResourceDictionary>
     </Window.Resources>
-
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="80" />
-            <RowDefinition Height="150" />
-            <RowDefinition Height="70" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="80" />
+                <RowDefinition Height="150" />
+                <RowDefinition Height="70" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="271*" />
+                <ColumnDefinition Width="214*" />
+                <ColumnDefinition Width="57*"/>
+            </Grid.ColumnDefinitions>
 
-        <StackPanel Height="70" VerticalAlignment="Center" Orientation="Horizontal"
-                    Grid.ColumnSpan="2" HorizontalAlignment="Center"
-                    Margin="0">
-            <!--<Image Width="50" Margin="0 0 10 0">
-                <Image.Source>
-                    <BitmapImage  UriSource="/images/adword64.png" />
-                </Image.Source>
-            </Image>-->
-            <TextBlock
+            <StackPanel Height="70" VerticalAlignment="Center" Orientation="Horizontal"
+                    Grid.ColumnSpan="3" HorizontalAlignment="Center">
+                <Image Width="50" Margin="5  0 10 0">
+                    <Image.Source>
+                        <BitmapImage  UriSource="/Images/automation-64.png" />
+                    </Image.Source>
+                </Image>
+                <TextBlock
                 VerticalAlignment="Center" 
                 FontSize="30"
                 Foreground="#666">BrightEdge Tool</TextBlock>
-        </StackPanel>
+            </StackPanel>
 
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
-                    HorizontalAlignment="Center">
-            <Button x:Name="launchChrome" Grid.Row="1" Width="100" Height="80"
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal"
+                    HorizontalAlignment="Center" Margin="51,0">
+                <Button x:Name="launchChrome" Grid.Row="1" Width="100" Height="80"
                     Margin="20 0"
                 Click="launchChrome_Click">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
-                       Text="&#xf135;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
-                    <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Start Chrome</TextBlock>
-                </StackPanel>
-            </Button>
-
-            <Button Grid.Column="1" x:Name="start" Grid.Row="1" Width="120" Height="100"
-                    Margin="20 0"
-                Click="start_Click">
-                <Grid>
-
                     <StackPanel Orientation="Vertical">
                         <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
-                       Text="&#xf04b;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
-                        <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Start</TextBlock>
+                       Text="&#xf135;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                        <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Start Chrome</TextBlock>
                     </StackPanel>
-                </Grid>
-            </Button>
+                </Button>
+
+                <Button Grid.Column="1" x:Name="start" Grid.Row="1" Width="120" Height="100"
+                    Margin="20 0"
+                Click="start_Click">
+                    <Grid>
+
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
+                       Text="&#xf04b;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                            <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Start</TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Button>
 
 
-            <Button x:Name="stopProcess" Grid.Row="1" Width="100" Height="80"
+                <Button x:Name="stopProcess" Grid.Row="1" Width="100" Height="80"
                     Margin="20 0" IsEnabled="False"
                 Click="stopProcess_Click">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
                        Text="&#xf04d;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
-                    <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Stop</TextBlock>
-                </StackPanel>
-            </Button>
+                        <TextBlock Margin="0 5 0 0" FontSize="12" HorizontalAlignment="Center">Stop</TextBlock>
+                    </StackPanel>
+                </Button>
 
-        </StackPanel>
+            </StackPanel>
 
-        <Grid Grid.Row="2" Grid.ColumnSpan="2">
-            <!--<TextBlock FontSize="60" Foreground="{StaticResource tool-light-green}" HorizontalAlignment="Center"
+            <Grid Grid.Row="2" Grid.ColumnSpan="3">
+                <!--<TextBlock FontSize="60" Foreground="{StaticResource tool-light-green}" HorizontalAlignment="Center"
                        Text="&#xf1ce;" FontFamily="{StaticResource FontAwesome-Solid}" />-->
 
-            <TextBlock RenderTransformOrigin=".5,.5" HorizontalAlignment="Center" VerticalAlignment="Center"
+                <TextBlock RenderTransformOrigin=".5,.5" HorizontalAlignment="Center" VerticalAlignment="Center"
                           Name="SpinnerText" Visibility="Collapsed" Padding="0" Margin="0"
                           FontSize="60" Foreground="{StaticResource tool-light-green}" 
                           Text="&#xf1ce;" FontFamily="{StaticResource FontAwesome-Solid}"
                            Grid.ColumnSpan="2" >
 
-                <TextBlock.RenderTransform>
-                    <RotateTransform x:Name="SpinnerRotateTransform" Angle="0" CenterX="0.5" CenterY="0.5"/>
-                </TextBlock.RenderTransform>
+                    <TextBlock.RenderTransform>
+                        <RotateTransform x:Name="SpinnerRotateTransform" Angle="0" CenterX="0.5" CenterY="0.5"/>
+                    </TextBlock.RenderTransform>
 
 
-                <TextBlock.Triggers>
-                    <EventTrigger RoutedEvent="TextBlock.Loaded">
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation
+                    <TextBlock.Triggers>
+                        <EventTrigger RoutedEvent="TextBlock.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
                                             Storyboard.TargetName="SpinnerRotateTransform" 
                                             Storyboard.TargetProperty="(RotateTransform.Angle)"
                                             From="0.0" To="360" Duration="0:0:1" 
                                             RepeatBehavior="Forever" AccelerationRatio="0.4" DecelerationRatio="0.6" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </EventTrigger>
-                </TextBlock.Triggers>
-            </TextBlock>
-        </Grid>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </TextBlock.Triggers>
+                </TextBlock>
+            </Grid>
 
-        <TextBox Name="status"
-            Margin="5" Padding="10" Foreground="#BBB"
-            Grid.ColumnSpan="2"
+            <TextBox Name="status"
+            Margin="8,5" Padding="10" Foreground="#BBB"
+            Grid.ColumnSpan="3"
             Grid.Row="3" BorderBrush="#eee"
             HorizontalAlignment="center"
             VerticalContentAlignment="Top"
             TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" 
             AcceptsReturn="True"
-            Width="525" IsReadOnly="True"/>
+            Width="520" IsReadOnly="True"/>
+        </Grid>
+        
+        
+        <!-- Settings -->
+
+        <StackPanel Panel.ZIndex="2" Name="pnlRightMenu" Orientation="Horizontal" Height="auto" HorizontalAlignment="Right" Margin="0,0,-300,0">
+            <Grid>
+                <Button Name="btnRightMenuShow" Width="48" 
+                        VerticalAlignment="Top"
+                        Height="48" Margin="0 130 5 0"
+                        Click="BtnRightMenuShow_Click">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock FontSize="30" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
+                       Text="&#xf013;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                    </StackPanel>
+                </Button>
+            </Grid>
+            <Border BorderThickness="1" Width="300" Padding="10"
+                    Background="{StaticResource tool-green}" >
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="120" />
+                        <RowDefinition Height="80" />
+                        <RowDefinition Height="80" />
+                        <RowDefinition Height="80" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Vertical" 
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock FontSize="60" FontWeight="Bold" Foreground="white" HorizontalAlignment="Center"
+                       Text="&#xf013;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1">
+                        <Label Foreground="White" FontSize="15">Email</Label>
+                        <TextBox x:Name="email" Style="{StaticResource input-field}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2">
+                        <Label Foreground="White" FontSize="15">Password</Label>
+                        <!--<TextBox Style="{StaticResource input-field}" />-->
+                        <PasswordBox x:Name="password" Style="{StaticResource password-field}" />
+                    </StackPanel>
+
+                    <Button x:Name="saveSettings"
+                        Grid.Row="3" Width="auto" 
+                            Style="{StaticResource saveSettingsButton}"
+                        Height="48" Margin="0 15 5 0"
+                        Click="SaveSettings_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontSize="30" FontWeight="Bold" 
+                                       Foreground="white" Margin="0 0 10 0"
+                                       HorizontalAlignment="Center"
+                                 Text="&#xf0c7;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                            <TextBlock Foreground="White" VerticalAlignment="Center">Save</TextBlock>
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel x:Name="success" Visibility="Collapsed"
+                                Orientation="Horizontal" Grid.Row="4" 
+                                VerticalAlignment="Top"
+                                Height="50" HorizontalAlignment="Center">
+                        <TextBlock FontSize="30" FontWeight="Bold" 
+                                       Foreground="white" Margin="0 0 10 0"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="&#xf00c;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                        <TextBlock Foreground="White" VerticalAlignment="Center">Save</TextBlock>
+                    </StackPanel>
+
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <StackPanel x:Name="overlay" 
+                    Background="#000000" 
+                    Opacity="0.6"
+                    Margin="0 0 0 0"
+                    Visibility="Collapsed" MouseLeftButtonUp="Overlay_MouseLeftButtonUp"
+                    >
+            
+        </StackPanel>
     </Grid>
+    
 </Window>
