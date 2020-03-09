@@ -33,7 +33,8 @@ namespace BrightEdgeAutomationTool
         public static IWebDriver Driver { get; set; }
         private string DownloadsFolder;
         private List<string> FilesToDelete = new List<string>();
-        private Database database;
+        //private Database database;
+        private DbCreator database;
         private User user;
         public bool StopProcess { get; set; } = false;
 
@@ -46,14 +47,16 @@ namespace BrightEdgeAutomationTool
 
             SHGetKnownFolderPath(KnownFolder.Downloads, 0, IntPtr.Zero, out DownloadsFolder);
 
-            database = new Database();
+            database = new DbCreator();
             user = database.GetUser();
+            AddUserFields();
+        }
 
+        private void AddUserFields()
+        {
             email.Text = user.Email;
             password.Password = user.Password;
         }
-
-
 
         private string GetPathToChrome()
         {
@@ -153,7 +156,21 @@ namespace BrightEdgeAutomationTool
 
         private void start_Click(object sender, RoutedEventArgs e)
         {
-            
+            /*var keywords =
+                @"downtown puchong city center meeting facilities
+meeting facility downtown puchong city center
+meeting facilities downtown puchong city center
+meeting facility in downtown puchong city center
+meeting facilities in downtown puchong city center
+downtown puchong financial corporate centre meeting hotel
+downtown puchong financial corporate centre meeting hotels
+meeting hotel downtown puchong financial corporate centre
+meeting hotels downtown puchong financial corporate centre
+meeting hotel in downtown puchong financial corporate centre";
+
+            var res = PuppetMaster.GetFirstRowLinkWithParam(keywords, "Malaysia");
+
+            return;*/
 
             using (var fbd = new FolderBrowserDialog())
             {
@@ -211,9 +228,22 @@ namespace BrightEdgeAutomationTool
 
                 string fileToProcess = f.FullName;
 
-                UpdateStatus($"{DateTime.Now} | Processing file {f.Name}");
+                if (f.Name.StartsWith("~$"))
+                    continue;
 
-                byte[] byteArray = File.ReadAllBytes(fileToProcess);
+                UpdateStatus($"{DateTime.Now} | Processing file {f.Name}");
+                SpreadsheetHelper.MatchedSheets.Clear();
+                byte[] byteArray;
+                try
+                {
+                    byteArray = File.ReadAllBytes(fileToProcess);
+                }
+                catch(Exception e)
+                {
+                    UpdateStatus($"{DateTime.Now} | Error reading file: {f.Name}");
+                    continue;
+                }
+
                 using (MemoryStream stream = new MemoryStream())
                 {
                     stream.Write(byteArray, 0, (int)byteArray.Length);
@@ -232,81 +262,92 @@ namespace BrightEdgeAutomationTool
                             List<KeywordResultValue> keywordStats = new List<KeywordResultValue>();
 
                             // Process all Pages
-                            foreach (var item in mainSheetData.Pages)
+                            foreach (var pageItem in mainSheetData.Pages)
                             {
-                                if (item != "Meetings")
-                                    continue;
+                                // Only for testing and should be commented out **********************
+                                //if (pageItem != "Dining")
+                                //    continue;
 
-                                UpdateStatus($"{DateTime.Now} | Processing {item} keywords in file: {f.Name}");
-
-                                List<KeywordResultValue> keywordPageStats = new List<KeywordResultValue>();
+                                UpdateStatus($"{DateTime.Now} | Processing {pageItem} keywords in file: {f.Name}");
 
                                 //Console.WriteLine(item);
-                                var keywordList = SpreadsheetHelper.GetKeywordsFromSheet(item);
-                                // Process a 1000 keywords at a time from eage page
-                                foreach (var keywordListItem in keywordList)
-                                {
+                                var keywordListData = SpreadsheetHelper.GetKeywordsFromSheet(pageItem);
+                                var keywordList = keywordListData.Item1;
+                                var keywordCount = keywordListData.Item2;
 
-                                    DateTime processStartTime = DateTime.Now;
+                                UpdateStatus($"{DateTime.Now} | {pageItem}: keyword count: {keywordCount}");
 
-                                    PuppetMaster.RunProcess(keywordListItem, mainSheetData.Country);
-                                    
+                                PuppetMaster.RetryUntilSuccessOrTimeout(() => {
+                                                                       
 
-                                    // Process downloaded file
-                                    IEnumerable<string> downloadedFiles = new List<string>();
+                                    List<KeywordResultValue> keywordPageStats = new List<KeywordResultValue>();
 
-                                    var diffInSeconds = (processStartTime - DateTime.Now).TotalSeconds;
-
-                                    while (diffInSeconds <= 60 && downloadedFiles.Count() == 0)
+                                    // Process a 1000 keywords at a time from each page
+                                    foreach (var keywordListItem in keywordList)
                                     {
-                                        downloadedFiles = Directory.GetFiles(DownloadsFolder)
-                                            .Where(x => new FileInfo(x).CreationTime > processStartTime && x.EndsWith(".csv"));
 
-                                        Thread.Sleep(3000);
+                                        if (StopProcess)
+                                            return true;
+
+                                        DateTime processStartTime = DateTime.Now;
+
+                                        PuppetMaster.RunProcess(keywordListItem, mainSheetData.Country);
+
+
+                                        // Process downloaded file
+                                        IEnumerable<string> downloadedFiles = new List<string>();
+
+                                        var diffInSeconds = (processStartTime - DateTime.Now).TotalSeconds;
+
+                                        while (diffInSeconds <= 60 && downloadedFiles.Count() == 0)
+                                        {
+                                            downloadedFiles = Directory.GetFiles(DownloadsFolder)
+                                                .Where(x => new FileInfo(x).CreationTime > processStartTime && x.EndsWith(".csv"));
+
+                                            Thread.Sleep(3000);
+                                        }
+
+                                        if (downloadedFiles.Count() > 0)
+                                        {
+                                            try
+                                            {
+                                                // Process the file
+                                                var downloadedFile = downloadedFiles.ElementAt(0);
+                                                Console.WriteLine(downloadedFile);
+                                                FilesToDelete.Add(downloadedFile);
+
+                                                List<KeywordResultValue> keywordStats1000 = File.ReadAllLines(downloadedFile)
+                                                    .Skip(1).Select(v => KeywordResultValue.FromCsv(v))
+                                                    .Where(v => v != null).ToList();
+
+                                                keywordPageStats.AddRange(keywordStats1000);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                return false;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                        
+                                        
                                     }
 
-                                    if (downloadedFiles.Count() > 0)
-                                    {
-                                        try
-                                        {
-                                            // Process the file
-                                            var downloadedFile = downloadedFiles.ElementAt(0);
-                                            Console.WriteLine(downloadedFile);
-                                            FilesToDelete.Add(downloadedFile);
+                                    //if (keywordPageStats.Count() == 0)
+                                    //    return false;
 
-                                            List<KeywordResultValue> keywordStats1000 = File.ReadAllLines(downloadedFile)
-                                                .Skip(1).Select(v => KeywordResultValue.FromCsv(v))
-                                                .Where(v => v != null).ToList();
+                                    keywordPageStats = keywordPageStats.OrderByDescending(k => k.Volume).ToList();
 
-                                            //keywordStatsByVolume = keywordStatsByVolume.OrderByDescending(k => k.Volume).ToList();
+                                    UpdateStatus($"{DateTime.Now} | {pageItem}: volume stats found in csv: {keywordPageStats.Count}");
 
-                                            keywordPageStats.AddRange(keywordStats1000);
+                                    keywordStats.AddRange(keywordPageStats);
 
+                                    DeleteDownloadedFiles();
 
-                                            //keywordStats.AddRange(keywordStatsByVolume);
-                                            //keywordStats = keywordStats.Concat(keywordStatsByVolume);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                        }
-                                        finally
-                                        {
-                                            
-                                        }
-
-                                    }
-
-                                    if (StopProcess)
-                                        break;
-                                }
-
-                                keywordPageStats = keywordPageStats.OrderByDescending(k => k.Volume).ToList();
-                                keywordStats.AddRange(keywordPageStats);
-
-                                DeleteDownloadedFiles();
-
-                                if (StopProcess)
-                                    break;
+                                    return true;
+                                }, TimeSpan.FromMinutes(8));
 
                                 //break;
                             }
@@ -423,6 +464,9 @@ namespace BrightEdgeAutomationTool
             }
             else
             {
+                user = database.GetUser();
+                AddUserFields();
+
                 ShowHideMenu("sbShowRightMenu", pnlRightMenu);
                 overlay.Visibility = Visibility.Visible;
                 IsRightMenuVisible = true;
@@ -462,6 +506,8 @@ namespace BrightEdgeAutomationTool
                 };
                 timer.Start();
                 this.user = user;
+
+                return;
             }
 
             System.Windows.MessageBox.Show("Error while saving", "Error",

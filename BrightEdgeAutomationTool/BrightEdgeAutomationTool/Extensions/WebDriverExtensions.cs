@@ -79,9 +79,9 @@ namespace BrightEdgeAutomationTool
             {
                 case "By.XPath":
                     element = (IWebElement)javaScriptExecutor.ExecuteScript(
-                        "console.log(arguments[0]);" +
+                        //"console.log(arguments[0]);" +
                         "function getElementByXpath(path) {" +
-                            "console.log(document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue);" +
+                            //"console.log(document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue);" +
                             "return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; }" +
                             "" +
                         "return getElementByXpath(arguments[0]);", by.ToString().Replace("By.XPath: ", ""));

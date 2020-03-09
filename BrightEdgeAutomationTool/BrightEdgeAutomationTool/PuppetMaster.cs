@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,10 @@ namespace BrightEdgeAutomationTool
 
         private static string BaseURL = "https://app1.brightedge.com/ui/platform-r/instant/bulk_keyword_volume/";
 
+        /// <summary>
+        /// Login the user in chrome
+        /// </summary>
+        /// <param name="user">The <see cref="User"/> with email and password</param>
         public static void LoginUser(User user)
         {
             if (Driver.ElementExist(By.Name("data[User][login]")))
@@ -38,6 +43,9 @@ namespace BrightEdgeAutomationTool
             }
         }
 
+        /// <summary>
+        /// Clean up Bright Edge
+        /// </summary>
         public static void DeleteQueries()
         {
             if (Driver.ElementExist(By.XPath("//div/a[button/span[contains(., 'All Queries')]]")))
@@ -60,6 +68,54 @@ namespace BrightEdgeAutomationTool
             }
         }
 
+        public static void DeleteQueries2(string keywords, string location)
+        {
+            
+            if (Driver.ElementExist(By.XPath("//div/a[button/span[contains(., 'All Queries')]]")))
+            {
+                var allQueries = Driver.FindElement(By.XPath("//div/a[button/span[contains(., 'All Queries')]]"), 15);
+                Click(allQueries);
+            }
+
+            WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(15));
+            Func<IWebDriver, IWebElement> waitForElement = new Func<IWebDriver, IWebElement>((IWebDriver Web) =>
+            {
+                try
+                {
+                    var el = GetFirstRowToggleWithParam(keywords, location);
+
+                    if (el != null)
+                        return el;
+
+                    return null;
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
+            });
+
+            IWebElement targetElement = wait.Until(waitForElement);
+
+            if(targetElement != null)
+            {
+                Click(targetElement);
+
+                // Delete the row
+                if (Driver.ElementExist(By.XPath("//button[span[contains(., 'Delete Queries')]]")))
+                {
+                    var deleteQueries = Driver.FindElement(By.XPath("//button[span[contains(., 'Delete Queries')]]"), 15);
+                    Click(deleteQueries);
+                }
+
+                Thread.Sleep(5000);
+            }
+        }
+
+        /// <summary>
+        /// Remove country from the country selector field 
+        /// </summary>
+        /// <param name="location">The country to be removed</param>
         public static void RemoveLocation(string location)
         {
             
@@ -75,6 +131,11 @@ namespace BrightEdgeAutomationTool
             }
         }
 
+        /// <summary>
+        /// Run the main Bright Edge keyword stats lookup process including downloading the csv stats
+        /// </summary>
+        /// <param name="keywords">The keywords to process</param>
+        /// <param name="location">The country</param>
         public static void RunProcess(string keywords, string location)
         {
             RetryUntilSuccessOrTimeout(() => {
@@ -86,7 +147,7 @@ namespace BrightEdgeAutomationTool
                 catch (Exception e)
                 {
                     Driver.Navigate().GoToUrl(BaseURL);
-                    Thread.Sleep(1500);
+                    Thread.Sleep(5000);
 
                     return false;
                 }
@@ -115,7 +176,8 @@ namespace BrightEdgeAutomationTool
 
                 // Input location
                 var inputLocation = Driver.FindElement(By.XPath("//input[contains(@name, 'searchTerm')]"), 15);
-                Click(inputLocation);
+                //Click(inputLocation);
+                inputLocation.Clear();
                 System.Windows.Clipboard.SetText(location);
                 inputLocation.SendKeys(OpenQA.Selenium.Keys.Control + "v");
 
@@ -134,15 +196,13 @@ namespace BrightEdgeAutomationTool
 
 
 
-            var initialDetailsUrl = GetDetailsUrl();
+            //var initialDetailsUrl = GetDetailsUrl();
 
             // Get volume button
             var getVolume = Driver.FindElement(By.XPath("//button[contains(@data-testid, 'queryButton')]"), 15);
             Click(getVolume);
 
-            //Console.WriteLine(initialDetailsUrl);
-
-            RetryUntilSuccessOrTimeout(() => {
+            /*RetryUntilSuccessOrTimeout(() => {
                 try
                 {
                     var detailsUrl = GetDetailsUrl();
@@ -159,30 +219,47 @@ namespace BrightEdgeAutomationTool
                     return false;
                 }
 
-            }, TimeSpan.FromSeconds(60));
-
-            //var rowElement = GetFirstRow();
+            }, TimeSpan.FromSeconds(120));
 
             // Click the View Details button
             // //div[contains(@class, 'viewportRow')]//button
             var viewDetailsButton = Driver.FindElement(By.XPath("//div[contains(@class, 'viewportRow')]//button"), 15);
-            Click(viewDetailsButton);
+            Click(viewDetailsButton);*/
 
-            // Optional: Click total search volume once to sort
+            IWebElement viewResultsButton = null;
+            RetryUntilSuccessOrTimeout(() => {
+                try
+                {
+                    viewResultsButton = GetFirstRowLinkWithParam(keywords, location);
 
+                    if (viewResultsButton != null)
+                        return true;
+
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+
+            }, TimeSpan.FromSeconds(120));
+            Click(viewResultsButton);
 
 
             // Now download the csv
             var downloadButton = Driver.FindElement(By.XPath("//div[contains(@class, 'popover__target') and span/button[span[contains(text(), 'd')]]]"), 15);
             Click(downloadButton);
 
-            DeleteQueries();
+            Thread.Sleep(2000);
+
+            //DeleteQueries();
+            DeleteQueries2(keywords, location);
         }
 
 
-        private static void Click(IWebElement element)
+        private static bool Click(IWebElement element)
         {
-            RetryUntilSuccessOrTimeout(() => {
+            var result = RetryUntilSuccessOrTimeout(() => {
 
                 try
                 {
@@ -200,6 +277,8 @@ namespace BrightEdgeAutomationTool
                 }
 
             }, TimeSpan.FromSeconds(10));
+
+            return result;
         }
 
         public static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeSpan)
@@ -238,6 +317,136 @@ namespace BrightEdgeAutomationTool
 
             IJavaScriptExecutor javaScriptExecutor = (IJavaScriptExecutor)Driver;
             var element = (IWebElement)javaScriptExecutor.ExecuteScript(scriptStr);
+
+            return element;
+        }
+
+        private static IWebElement GetFirstRowWithParam(string keywords, string location)
+        {
+            var scriptStr =
+            @"
+                function getKeywordRow(mKeywords, mLocation)
+                {
+                    for(var i = 0; i < 3; i++)
+                    {
+                        try{
+                            mKeywords = mKeywords.replace(/(?:\r\n|\r|\n)/g, ' ');
+                            var row = document.querySelectorAll('[class^=\""viewportRow""\]')[i];
+                            var keywordCell = row.querySelectorAll('[class^=\""cell""\]')[2];
+                            var locationCell = row.querySelectorAll('[class^=\""cell""\]')[4];
+                            var keywords = keywordCell.querySelector('span').innerText;
+
+                            var location = locationCell.innerText.replace('United States', '').replace(/[^\w\s]/gi, '').trim();
+                            keywords = keywords.replace(/[^\w\s]/gi, '');
+
+                            //console.log(mKeywords);
+                            //console.log(keywords);
+
+                            if (mKeywords.toLowerCase().startsWith(keywords.toLowerCase()) &&
+                                mLocation.toLowerCase().includes(location.toLowerCase()))
+                            {
+                                return rows;
+                            }
+                        } catch(e){}
+
+                    }
+                    return null;
+                }
+
+                var result = getKeywordRow(arguments[0], arguments[1]);
+                return result;
+            ";
+
+
+            IJavaScriptExecutor javaScriptExecutor = (IJavaScriptExecutor)Driver;
+            var element = (IWebElement)javaScriptExecutor.ExecuteScript(scriptStr, keywords.Substring(0,100), location);
+
+            return element;
+        }
+
+        public static IWebElement GetFirstRowLinkWithParam(string keywords, string location)
+        {
+            var scriptStr =
+            @"
+                function getKeywordRowLink(mKeywords, mLocation)
+                {
+                    for(var i = 0; i < 10; i++)
+                    {
+                        try
+                        {
+                            mKeywords = mKeywords.replace(/(?:\r\n|\r|\n)/g, ' ');
+                            var row = document.querySelectorAll('[class^=\""viewportRow""\]')[i];
+                            var keywordCell = row.querySelectorAll('[class^=\""cell""\]')[2];
+                            var locationCell = row.querySelectorAll('[class^=\""cell""\]')[4];
+                            var keywords = keywordCell.querySelector('span').innerText;
+
+                            var location = locationCell.innerText.replace('United States', '').replace(/[^\w\s]/gi, '').trim();
+                            keywords = keywords.replace(/[^\w\s]/gi, '');
+
+                            console.log(mKeywords);
+                            console.log(keywords);
+
+                            if (mKeywords.toLowerCase().startsWith(keywords.toLowerCase()) &&
+                                mLocation.toLowerCase().includes(location.toLowerCase()))
+                            {
+                                return row.querySelector('button');
+                            }
+                        } catch(e){}
+
+                    }
+                    return null;
+                }
+
+                var result = getKeywordRowLink(arguments[0], arguments[1]);
+                return result;
+            ";
+
+
+            IJavaScriptExecutor javaScriptExecutor = (IJavaScriptExecutor)Driver;
+            var element = (IWebElement)javaScriptExecutor.ExecuteScript(scriptStr, keywords.Substring(0, 100), location);
+
+            return element;
+        }
+
+        private static IWebElement GetFirstRowToggleWithParam(string keywords, string location)
+        {
+            var scriptStr =
+            @"
+                function getKeywordRowToggle(mKeywords, mLocation)
+                {
+                    for(var i = 0; i < 3; i++)
+                    {
+                        try{
+                            mKeywords = mKeywords.replace(/(?:\r\n|\r|\n)/g, ' ');
+                            var row = document.querySelectorAll('[class^=\""viewportRow""\]')[i];
+                            var keywordCell = row.querySelectorAll('[class^=\""cell""\]')[2];
+                            var locationCell = row.querySelectorAll('[class^=\""cell""\]')[4];
+                            var keywords = keywordCell.querySelector('span').innerText;
+
+                            var location = locationCell.innerText.replace('United States', '').replace(/[^\w\s]/gi, '').trim();
+                            keywords = keywords.replace(/[^\w\s]/gi, '');
+
+                            //console.log(mKeywords);
+                            //console.log(keywords);
+
+                            if (mKeywords.toLowerCase().startsWith(keywords.toLowerCase()) &&
+                                mLocation.toLowerCase().includes(location.toLowerCase()))
+                            {
+                                return row.querySelector('div[class^=\""toggle""\]');
+                            }
+                        } catch(e){}
+
+                    }
+                    return null;
+                }
+
+                var result = getKeywordRowToggle(arguments[0], arguments[1]);
+                return result;
+            ";
+
+
+            IJavaScriptExecutor javaScriptExecutor = (IJavaScriptExecutor)Driver;
+            var element = (IWebElement)javaScriptExecutor.ExecuteScript(scriptStr, keywords.Substring(0, 100), location);
 
             return element;
         }

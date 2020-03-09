@@ -350,7 +350,7 @@
                     </StackPanel>
                 </Button>
             </Grid>
-            <Border BorderThickness="1" Width="300" Padding="10"
+            <Border BorderThickness="1" Width="300" Padding="20 10"
                     Background="{StaticResource tool-green}" >
                 <Grid >
                     <Grid.RowDefinitions>
@@ -401,7 +401,7 @@
                                        Foreground="white" Margin="0 0 10 0"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                  Text="&#xf00c;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
-                        <TextBlock Foreground="White" VerticalAlignment="Center">Save</TextBlock>
+                        <TextBlock Foreground="White" VerticalAlignment="Center">Settings saved successfully!</TextBlock>
                     </StackPanel>
 
                 </Grid>

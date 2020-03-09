@@ -42,33 +42,41 @@ namespace BrightEdgeAutomationTool
             return replace;
         }
 
-        public static List<string> GetKeywordsFromSheet(string sheetName)
+        public static List<string> MatchedSheets = new List<string>();
+
+        public static (List<string>, int) GetKeywordsFromSheet(string sheetName)
         {
             List<string> keywordList = new List<string>();
-            var pagesSheetPart = GetWorksheetPartThatBeginsWith(workbookPart, sheetName.Substring(0, 3));
-            var rows = pagesSheetPart.Worksheet.GetFirstChild<SheetData>().Elements<Row>();
-
-            var keywordsRaw = rows.Select(kRow => GetCellValue(GetRowCells(kRow).ElementAtOrDefault(0), workbookPart));
-
-            var keywordsNotNull = keywordsRaw.Where(c => {
-                if (!string.IsNullOrEmpty(c))
-                {
-                    if (c.Equals("0"))
-                        return false;
-                    return true;
-                }
-                   
-                return false;
-            });
-
-            for (int i = 0; i < keywordsNotNull.Count(); i += 1000) //should be 1000
+            int keywordCount = 0;
+            var pagesSheetPart = GetWorksheetPartThatBeginsWith(workbookPart, sheetName.Trim().Substring(0, 3));
+            
+            if(pagesSheetPart != null)
             {
-                //List<string> myNewString = tempSMSNoList.Skip(i * groupSize).Take(groupSize).ToList();
-                var keywordListStr = keywordsNotNull.Skip(i == 0 ? 0 : i).Take(1000).Aggregate((x, y) => x + "\n" + y);
-                keywordList.Add(keywordListStr);
+                var rows = pagesSheetPart.Worksheet.GetFirstChild<SheetData>().Elements<Row>();
+
+                var keywordsRaw = rows.Select(kRow => GetCellValue(GetRowCells(kRow).ElementAtOrDefault(0), workbookPart));
+
+                var keywordsNotNull = keywordsRaw.Where(c => {
+                    if (!string.IsNullOrEmpty(c))
+                    {
+                        if (c.Equals("0"))
+                            return false;
+                        return true;
+                    }
+
+                    return false;
+                });
+
+                keywordCount = keywordsNotNull.Count();
+
+                for (int i = 0; i < keywordsNotNull.Count(); i += 1000) //should be 1000
+                {
+                    var keywordListStr = keywordsNotNull.Skip(i == 0 ? 0 : i).Take(1000).Aggregate((x, y) => x + "\n" + y);
+                    keywordList.Add(keywordListStr);
+                }
             }
 
-            return keywordList;
+            return (keywordList, keywordCount);
         }
 
 
@@ -159,7 +167,6 @@ namespace BrightEdgeAutomationTool
             return true;
         }
 
-
         public static WorksheetPart GetWorksheetPart(WorkbookPart workbookPart, string sheetName)
         {
             var resultSheet = workbookPart.Workbook.Descendants<Sheet>().FirstOrDefault(s => sheetName.Equals(s.Name));
@@ -170,12 +177,29 @@ namespace BrightEdgeAutomationTool
             return (WorksheetPart)workbookPart.GetPartById(relId);
         }
 
-        public static WorksheetPart GetWorksheetPartThatBeginsWith(WorkbookPart workbookPart, string partialSheetName)
+        public static WorksheetPart GetWorksheetPartThatBeginsWith(WorkbookPart workbookPart, string partialSheetName, bool matchOnce = true)
         {
+            //var resultSheet = workbookPart.Workbook.Descendants<Sheet>()
+            //    .FirstOrDefault(s => s.Name.ToString().StartsWith(partialSheetName,StringComparison.CurrentCultureIgnoreCase));
             var resultSheet = workbookPart.Workbook.Descendants<Sheet>()
-                .FirstOrDefault(s => s.Name.ToString().StartsWith(partialSheetName,StringComparison.CurrentCultureIgnoreCase));
+                .FirstOrDefault(s => {
+                    var sheetNameArr = s.Name.ToString().Split(new string[] { " or " }, StringSplitOptions.None);
+
+                    foreach (var sheetName in sheetNameArr)
+                    {
+                        return sheetName.StartsWith(partialSheetName, StringComparison.CurrentCultureIgnoreCase);
+                    }
+                    return false;
+                });
+
             if (resultSheet == null)
                 return null;
+
+            //Check if already matched
+            if (MatchedSheets.Contains(resultSheet.Name) && matchOnce)
+                return null;
+
+            MatchedSheets.Add(resultSheet.Name);
 
             string relId = resultSheet.Id;
             return (WorksheetPart)workbookPart.GetPartById(relId);
