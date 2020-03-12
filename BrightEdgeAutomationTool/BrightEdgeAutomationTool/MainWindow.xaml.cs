@@ -219,7 +219,7 @@ meeting hotel in downtown puchong financial corporate centre";
             DirectoryInfo dirInfo = new DirectoryInfo(selectedPath);
             FileInfo[] files = null;
             files = dirInfo.GetFiles();
-
+            int batchesProcessed = 0;
 
 
 
@@ -291,7 +291,10 @@ meeting hotel in downtown puchong financial corporate centre";
 
                                         DateTime processStartTime = DateTime.Now;
 
-                                        PuppetMaster.RunProcess(keywordListItem, mainSheetData.Country);
+                                        var result = PuppetMaster.RunProcess(keywordListItem, mainSheetData.Country);
+
+                                        if (result == false)
+                                            return false;
 
 
                                         // Process downloaded file
@@ -354,7 +357,9 @@ meeting hotel in downtown puchong financial corporate centre";
 
                             PuppetMaster.RemoveLocation(mainSheetData.Country);
 
+                            
                             SpreadsheetHelper.CreateResultSheet(keywordStats);
+                            batchesProcessed++;
                         }
 
                         
@@ -366,6 +371,8 @@ meeting hotel in downtown puchong financial corporate centre";
                 if(StopProcess)
                     break;
             }
+
+            PuppetMaster.DeleteAllQueries((int)Math.Ceiling((decimal)batchesProcessed / 10));
 
 
             this.Dispatcher.Invoke(() =>

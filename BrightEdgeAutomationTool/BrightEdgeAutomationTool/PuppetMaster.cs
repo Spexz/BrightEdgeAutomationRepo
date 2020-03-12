@@ -70,11 +70,14 @@ namespace BrightEdgeAutomationTool
 
         public static void DeleteQueries2(string keywords, string location)
         {
-            
+            Thread.Sleep(2000);
+            WaitOnLoader();
+
             if (Driver.ElementExist(By.XPath("//div/a[button/span[contains(., 'All Queries')]]")))
             {
                 var allQueries = Driver.FindElement(By.XPath("//div/a[button/span[contains(., 'All Queries')]]"), 15);
                 Click(allQueries);
+                Thread.Sleep(2000);
             }
 
             WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(15));
@@ -108,8 +111,40 @@ namespace BrightEdgeAutomationTool
                     Click(deleteQueries);
                 }
 
-                Thread.Sleep(5000);
+                //Thread.Sleep(5000);
+                WaitOnLoader();
             }
+        }
+
+        public static void DeleteAllQueries(int count)
+        {
+            try
+            {
+                if (Driver.ElementExist(By.XPath("//div/a[button/span[contains(., 'All Queries')]]")))
+                {
+                    var allQueries = Driver.FindElement(By.XPath("//div/a[button/span[contains(., 'All Queries')]]"), 15);
+                    Click(allQueries);
+                    Thread.Sleep(1000);
+                }
+
+                for (var i = 0; i < count; i++)
+                {
+                    WaitOnLoader();
+
+                    //div[contains(@class, 'viewportRow')]
+                    if (Driver.ElementExist(By.XPath("//div[contains(@class, 'viewportRow')]")))
+                    {
+                        var checkAll = Driver.FindElement(By.XPath("//div[contains(@class, 'header')]//div[contains(@class, 'toggle_')]"), 15);
+                        Click(checkAll);
+
+                        var deleteQueries = Driver.FindElement(By.XPath("//button[span[contains(., 'Delete Queries')]]"), 15);
+                        Click(deleteQueries);
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch(Exception e)
+            { }
         }
 
         /// <summary>
@@ -136,9 +171,9 @@ namespace BrightEdgeAutomationTool
         /// </summary>
         /// <param name="keywords">The keywords to process</param>
         /// <param name="location">The country</param>
-        public static void RunProcess(string keywords, string location)
+        public static bool RunProcess(string keywords, string location)
         {
-            RetryUntilSuccessOrTimeout(() => {
+            var result = RetryUntilSuccessOrTimeout(() => {
                 try
                 {
                     ActionProcess(keywords, location);
@@ -153,11 +188,46 @@ namespace BrightEdgeAutomationTool
                 }
             }, TimeSpan.FromMinutes(5));
 
+            return result;
+
+        }
+
+        private static bool CheckForLoadErrors()
+        {
+            if (Driver.ElementExist(By.XPath("//div[contains(@class, 'snackbar')]//span[contains(., 'Unable to fetch results')]")))
+            {
+                throw new Exception();
+            }
+
+            return false;
+        }
+
+        private static void WaitOnLoader()
+        {
+
+            CheckForLoadErrors();
+
+            RetryUntilSuccessOrTimeout(() => {
+                try
+                {
+                    if (Driver.ElementExist(By.XPath("//div[contains(@class, 'loader__')]")) ||
+                        Driver.ElementExist(By.XPath("//img[contains(@class, 'loading-indicator')]")))
+                        return false;
+
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+            }, TimeSpan.FromSeconds(120));
         }
 
 
         public static void ActionProcess(string keywords, string location)
         {
+            WaitOnLoader();
+
             var keywordField = Driver.FindElement(By.Id("keywords"), 15);
             keywordField.Clear();
             System.Windows.Clipboard.SetText(keywords);
@@ -194,40 +264,18 @@ namespace BrightEdgeAutomationTool
                 Click(collapseLocation);
             }
 
-
-
-            //var initialDetailsUrl = GetDetailsUrl();
+            
 
             // Get volume button
             var getVolume = Driver.FindElement(By.XPath("//button[contains(@data-testid, 'queryButton')]"), 15);
             Click(getVolume);
 
-            /*RetryUntilSuccessOrTimeout(() => {
-                try
-                {
-                    var detailsUrl = GetDetailsUrl();
 
-                    if (String.IsNullOrEmpty(initialDetailsUrl) && !String.IsNullOrEmpty(detailsUrl))
-                        return true;
-                    else if (!initialDetailsUrl.Equals(detailsUrl) && detailsUrl != null)
-                        return true;
-                    else
-                        return false;
-                }
-                catch (Exception e)
-                {
-                    return false;
-                }
 
-            }, TimeSpan.FromSeconds(120));
-
-            // Click the View Details button
-            // //div[contains(@class, 'viewportRow')]//button
-            var viewDetailsButton = Driver.FindElement(By.XPath("//div[contains(@class, 'viewportRow')]//button"), 15);
-            Click(viewDetailsButton);*/
 
             IWebElement viewResultsButton = null;
             RetryUntilSuccessOrTimeout(() => {
+                CheckForLoadErrors();
                 try
                 {
                     viewResultsButton = GetFirstRowLinkWithParam(keywords, location);
@@ -250,10 +298,17 @@ namespace BrightEdgeAutomationTool
             var downloadButton = Driver.FindElement(By.XPath("//div[contains(@class, 'popover__target') and span/button[span[contains(text(), 'd')]]]"), 15);
             Click(downloadButton);
 
+            if (Driver.ElementExist(By.XPath("//div/a[button/span[contains(., 'All Queries')]]")))
+            {
+                var allQueries = Driver.FindElement(By.XPath("//div/a[button/span[contains(., 'All Queries')]]"), 15);
+                Click(allQueries);
+            }
+
             Thread.Sleep(2000);
+            //CheckForLoadErrors();
 
             //DeleteQueries();
-            DeleteQueries2(keywords, location);
+            //DeleteQueries2(keywords, location);
         }
 
 
@@ -272,7 +327,7 @@ namespace BrightEdgeAutomationTool
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Clicking: " + e.Message);
+                    //Console.WriteLine("Clicking: " + e.Message);
                     return false;
                 }
 
@@ -370,7 +425,7 @@ namespace BrightEdgeAutomationTool
             @"
                 function getKeywordRowLink(mKeywords, mLocation)
                 {
-                    for(var i = 0; i < 10; i++)
+                    for(var i = 0; i < 5; i++)
                     {
                         try
                         {
@@ -383,8 +438,8 @@ namespace BrightEdgeAutomationTool
                             var location = locationCell.innerText.replace('United States', '').replace(/[^\w\s]/gi, '').trim();
                             keywords = keywords.replace(/[^\w\s]/gi, '');
 
-                            console.log(mKeywords);
-                            console.log(keywords);
+                            //console.log(mKeywords);
+                            //console.log(keywords);
 
                             if (mKeywords.toLowerCase().startsWith(keywords.toLowerCase()) &&
                                 mLocation.toLowerCase().includes(location.toLowerCase()))
