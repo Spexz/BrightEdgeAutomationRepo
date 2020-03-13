@@ -140,10 +140,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Database.cs" />
+    <Compile Include="HWNDHelper.cs" />
     <Compile Include="KeywordResultValue.cs" />
     <Compile Include="MainSheetData.cs" />
     <Compile Include="PowerHelper.cs" />
     <Compile Include="PuppetMaster.cs" />
+    <Compile Include="RankTrackerPuppetMaster.cs" />
     <Compile Include="SpreadsheetHelper.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

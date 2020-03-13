@@ -43,19 +43,40 @@ namespace BrightEdgeAutomationTool
             InitializeComponent();
 
             // Disable start button initially 
-            start.IsEnabled = false;
+            //start.IsEnabled = false;
 
             SHGetKnownFolderPath(KnownFolder.Downloads, 0, IntPtr.Zero, out DownloadsFolder);
 
             database = new DbCreator();
             user = database.GetUser();
             AddUserFields();
+
+            CheckIfRankTrackerIsOpen();
+            /*Thread t = new Thread(() =>
+            {
+                CheckIfRankTrackerIsOpen();
+            });
+
+            t.Start();*/
+        }
+
+        private void CheckIfRankTrackerIsOpen()
+        {
+            if(user.RunRankTracker)
+            {
+                if(!HWNDHelper.IsRankTrackerOpen())
+                {
+                    System.Windows.MessageBox.Show("Please ensure Rank Tracker is open!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
 
         private void AddUserFields()
         {
             email.Text = user.Email;
             password.Password = user.Password;
+            bright_edge.IsChecked = user.RunBrightEdge;
+            rank_tracker.IsChecked = user.RunRankTracker;
         }
 
         private string GetPathToChrome()
@@ -220,159 +241,199 @@ meeting hotel in downtown puchong financial corporate centre";
             FileInfo[] files = null;
             files = dirInfo.GetFiles();
             int batchesProcessed = 0;
+            DirectoryInfo dirForRT = null;
 
-
-
-            foreach (FileInfo f in files)
+            // Start Bright Edge Processing
+            if (user.RunBrightEdge)
             {
-
-                string fileToProcess = f.FullName;
-
-                if (f.Name.StartsWith("~$"))
-                    continue;
-
-                UpdateStatus($"{DateTime.Now} | Processing file {f.Name}");
-                SpreadsheetHelper.MatchedSheets.Clear();
-                byte[] byteArray;
-                try
+                foreach (FileInfo f in files)
                 {
-                    byteArray = File.ReadAllBytes(fileToProcess);
-                }
-                catch(Exception e)
-                {
-                    UpdateStatus($"{DateTime.Now} | Error reading file: {f.Name}");
-                    continue;
-                }
 
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    stream.Write(byteArray, 0, (int)byteArray.Length);
-                    
-                    // Open the document for editing
-                    using (SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Open(stream, true))
+                    string fileToProcess = f.FullName;
+
+                    if (f.Name.StartsWith("~$"))
+                        continue;
+
+                    UpdateStatus($"{DateTime.Now} | Processing file {f.Name}");
+                    SpreadsheetHelper.MatchedSheets.Clear();
+                    byte[] byteArray;
+                    try
                     {
-                        WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
-                        SpreadsheetHelper.workbookPart = workbookPart;
+                        byteArray = File.ReadAllBytes(fileToProcess);
+                    }
+                    catch (Exception e)
+                    {
+                        UpdateStatus($"{DateTime.Now} | Error reading file: {f.Name}");
+                        continue;
+                    }
 
-                        var mainSheetPart = SpreadsheetHelper.GetWorksheetPart(workbookPart, "REPLACE");
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        stream.Write(byteArray, 0, (int)byteArray.Length);
 
-                        if (mainSheetPart != null)
+                        // Open the document for editing
+                        using (SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Open(stream, true))
                         {
-                            var mainSheetData = SpreadsheetHelper.GetMainSheetData(mainSheetPart);
-                            List<KeywordResultValue> keywordStats = new List<KeywordResultValue>();
+                            WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
+                            SpreadsheetHelper.workbookPart = workbookPart;
 
-                            // Process all Pages
-                            foreach (var pageItem in mainSheetData.Pages)
+                            var mainSheetPart = SpreadsheetHelper.GetWorksheetPart(workbookPart, "REPLACE");
+
+                            if (mainSheetPart != null)
                             {
-                                // Only for testing and should be commented out **********************
-                                //if (pageItem != "Dining")
-                                //    continue;
+                                var mainSheetData = SpreadsheetHelper.GetMainSheetData(mainSheetPart);
+                                List<KeywordResultValue> keywordStats = new List<KeywordResultValue>();
 
-                                UpdateStatus($"{DateTime.Now} | Processing {pageItem} keywords in file: {f.Name}");
+                                // Process all Pages
+                                foreach (var pageItem in mainSheetData.Pages)
+                                {
+                                    // Only for testing and should be commented out **********************
+                                    //if (pageItem != "Dining")
+                                    //    continue;
 
-                                //Console.WriteLine(item);
-                                var keywordListData = SpreadsheetHelper.GetKeywordsFromSheet(pageItem);
-                                var keywordList = keywordListData.Item1;
-                                var keywordCount = keywordListData.Item2;
+                                    UpdateStatus($"{DateTime.Now} | Processing {pageItem} keywords in file: {f.Name}");
 
-                                UpdateStatus($"{DateTime.Now} | {pageItem}: keyword count: {keywordCount}");
+                                    //Console.WriteLine(item);
+                                    var keywordListData = SpreadsheetHelper.GetKeywordsFromSheet(pageItem);
+                                    var keywordList = keywordListData.Item1;
+                                    var keywordCount = keywordListData.Item2;
 
-                                PuppetMaster.RetryUntilSuccessOrTimeout(() => {
-                                                                       
+                                    UpdateStatus($"{DateTime.Now} | {pageItem}: keyword count: {keywordCount}");
 
-                                    List<KeywordResultValue> keywordPageStats = new List<KeywordResultValue>();
-
-                                    // Process a 1000 keywords at a time from each page
-                                    foreach (var keywordListItem in keywordList)
-                                    {
-
-                                        if (StopProcess)
-                                            return true;
-
-                                        DateTime processStartTime = DateTime.Now;
-
-                                        var result = PuppetMaster.RunProcess(keywordListItem, mainSheetData.Country);
-
-                                        if (result == false)
-                                            return false;
+                                    PuppetMaster.RetryUntilSuccessOrTimeout(() => {
 
 
-                                        // Process downloaded file
-                                        IEnumerable<string> downloadedFiles = new List<string>();
+                                        List<KeywordResultValue> keywordPageStats = new List<KeywordResultValue>();
 
-                                        var diffInSeconds = (processStartTime - DateTime.Now).TotalSeconds;
-
-                                        while (diffInSeconds <= 60 && downloadedFiles.Count() == 0)
+                                        // Process a 1000 keywords at a time from each page
+                                        foreach (var keywordListItem in keywordList)
                                         {
-                                            downloadedFiles = Directory.GetFiles(DownloadsFolder)
-                                                .Where(x => new FileInfo(x).CreationTime > processStartTime && x.EndsWith(".csv"));
 
-                                            Thread.Sleep(3000);
-                                        }
+                                            if (StopProcess)
+                                                return true;
 
-                                        if (downloadedFiles.Count() > 0)
-                                        {
-                                            try
+                                            DateTime processStartTime = DateTime.Now;
+
+                                            var result = PuppetMaster.RunProcess(keywordListItem, mainSheetData.Country);
+
+                                            if (result == false)
+                                                return false;
+
+
+                                            // Process downloaded file
+                                            IEnumerable<string> downloadedFiles = new List<string>();
+
+                                            var diffInSeconds = (processStartTime - DateTime.Now).TotalSeconds;
+
+                                            while (diffInSeconds <= 60 && downloadedFiles.Count() == 0)
                                             {
-                                                // Process the file
-                                                var downloadedFile = downloadedFiles.ElementAt(0);
-                                                Console.WriteLine(downloadedFile);
-                                                FilesToDelete.Add(downloadedFile);
+                                                downloadedFiles = Directory.GetFiles(DownloadsFolder)
+                                                    .Where(x => new FileInfo(x).CreationTime > processStartTime && x.EndsWith(".csv"));
 
-                                                List<KeywordResultValue> keywordStats1000 = File.ReadAllLines(downloadedFile)
-                                                    .Skip(1).Select(v => KeywordResultValue.FromCsv(v))
-                                                    .Where(v => v != null).ToList();
-
-                                                keywordPageStats.AddRange(keywordStats1000);
+                                                Thread.Sleep(3000);
                                             }
-                                            catch (Exception ex)
+
+                                            if (downloadedFiles.Count() > 0)
+                                            {
+                                                try
+                                                {
+                                                    // Process the file
+                                                    var downloadedFile = downloadedFiles.ElementAt(0);
+                                                    Console.WriteLine(downloadedFile);
+                                                    FilesToDelete.Add(downloadedFile);
+
+                                                    List<KeywordResultValue> keywordStats1000 = File.ReadAllLines(downloadedFile)
+                                                        .Skip(1).Select(v => KeywordResultValue.FromCsv(v))
+                                                        .Where(v => v != null).ToList();
+
+                                                    keywordPageStats.AddRange(keywordStats1000);
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    return false;
+                                                }
+                                            }
+                                            else
                                             {
                                                 return false;
                                             }
+
+
                                         }
-                                        else
-                                        {
-                                            return false;
-                                        }
-                                        
-                                        
-                                    }
 
-                                    //if (keywordPageStats.Count() == 0)
-                                    //    return false;
+                                        //if (keywordPageStats.Count() == 0)
+                                        //    return false;
 
-                                    keywordPageStats = keywordPageStats.OrderByDescending(k => k.Volume).ToList();
+                                        keywordPageStats = keywordPageStats.OrderByDescending(k => k.Volume).ToList();
 
-                                    UpdateStatus($"{DateTime.Now} | {pageItem}: volume stats found in csv: {keywordPageStats.Count}");
+                                        UpdateStatus($"{DateTime.Now} | {pageItem}: volume stats found in csv: {keywordPageStats.Count}");
 
-                                    keywordStats.AddRange(keywordPageStats);
+                                        keywordStats.AddRange(keywordPageStats);
 
-                                    DeleteDownloadedFiles();
+                                        DeleteDownloadedFiles();
 
-                                    return true;
-                                }, TimeSpan.FromMinutes(8));
+                                        return true;
+                                    }, TimeSpan.FromMinutes(8));
 
-                                //break;
+                                    //break;
+                                }
+
+                                PuppetMaster.RemoveLocation(mainSheetData.Country);
+
+
+                                SpreadsheetHelper.CreateResultSheet(keywordStats);
+                                batchesProcessed++;
                             }
 
-                            PuppetMaster.RemoveLocation(mainSheetData.Country);
 
-                            
-                            SpreadsheetHelper.CreateResultSheet(keywordStats);
-                            batchesProcessed++;
                         }
 
-                        
+                        var saveResult = SaveAs(fileToProcess, stream);
+
+                        dirForRT = saveResult.Item2;
                     }
 
-                    SaveAs(fileToProcess, stream);
+                    if (StopProcess)
+                        break;
                 }
 
-                if(StopProcess)
-                    break;
+                PuppetMaster.DeleteAllQueries((int)Math.Ceiling((decimal)batchesProcessed / 10));
+            }
+                            
+
+            // Start Rank Tracker Processing
+            if (user.RunRankTracker)
+            {
+                if (dirForRT == null)
+                {
+
+                    dirForRT = new DirectoryInfo(selectedPath);
+
+                    /*using (var fbd = new FolderBrowserDialog())
+                    {
+                        DialogResult result = fbd.ShowDialog();
+
+                        if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                        {
+                            dirForRT = new DirectoryInfo(fbd.SelectedPath);
+
+                            // Start the process
+                            RankTrackerPuppetMaster.StartProcess(dirForRT);
+
+                            dirForRT = null;
+                        }
+                    }*/
+                }
+
+                // Start the process
+                RankTrackerPuppetMaster.StartProcess(dirForRT);
+
+                dirForRT = null;
             }
 
-            PuppetMaster.DeleteAllQueries((int)Math.Ceiling((decimal)batchesProcessed / 10));
+
+
+
 
 
             this.Dispatcher.Invoke(() =>
@@ -414,7 +475,7 @@ meeting hotel in downtown puchong financial corporate centre";
             }
         }
 
-        private bool SaveAs(string path, MemoryStream stream)
+        private (bool, DirectoryInfo) SaveAs(string path, MemoryStream stream)
         {
             var directory = Path.GetDirectoryName(path);
             var fileName = Path.GetFileName(path);
@@ -427,7 +488,9 @@ meeting hotel in downtown puchong financial corporate centre";
 
             File.WriteAllBytes(newFilePath, stream.ToArray());
 
-            return true;
+            
+
+            return (true, new DirectoryInfo(newPath));
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -493,6 +556,8 @@ meeting hotel in downtown puchong financial corporate centre";
         {
             var emailValue = email.Text;
             var passwordValue = password.Password.ToString();
+            var BEValue = (bool)bright_edge.IsChecked;
+            var RTValue = (bool)rank_tracker.IsChecked;
 
             if (emailValue == "" || passwordValue == "")
             {
@@ -501,7 +566,7 @@ meeting hotel in downtown puchong financial corporate centre";
                 return;
             }
 
-            var user = database.UpdateUser(emailValue, passwordValue);
+            var user = database.UpdateUser(emailValue, passwordValue, BEValue, RTValue);
 
             if(user != null)
             {

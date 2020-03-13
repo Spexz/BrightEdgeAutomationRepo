@@ -96,6 +96,8 @@ namespace BrightEdgeAutomationTool
     {
         public string Email { get; set; }
         public string Password { get; set; }
+        public bool RunBrightEdge { get; set; }
+        public bool RunRankTracker { get; set; }
     }
 
 
@@ -146,7 +148,8 @@ namespace BrightEdgeAutomationTool
         {
             if (!checkIfExist("settings"))
             {
-                sqlCommand = "CREATE TABLE settings ( id INTEGER PRIMARY KEY AUTOINCREMENT, email VARCHAR(62), password VARCHAR(32) )";
+                sqlCommand = "CREATE TABLE settings ( id INTEGER PRIMARY KEY AUTOINCREMENT, email VARCHAR(62), password VARCHAR(32)," +
+                    " run_bright_edge BOOL DEFAULT 1, run_rank_tracker BOOL DEFAULT 0 )";
                 executeQuery(sqlCommand);
                 executeQuery("INSERT INTO settings (email, password) VALUES ('john.connolly@galileotechmedia.com', '')");
             }
@@ -186,17 +189,22 @@ namespace BrightEdgeAutomationTool
 
             while (rdr.Read())
             {
-                return new User { Email = rdr.GetString(1), Password = rdr.GetString(2) };
+                return new User { Email = rdr.GetString(1), Password = rdr.GetString(2),
+                    RunBrightEdge = rdr.GetBoolean(3), RunRankTracker = rdr.GetBoolean(4)};
             }
 
             return null;
         }
 
-        public User UpdateUser(string email, string password)
+        public User UpdateUser(string email, string password, bool runBrightEdge, bool runRankTracker)
         {
             try
             {
-                string query = $"UPDATE settings SET email = '{email}', password='{password}' WHERE Id IS NOT NULL";
+                var runBE = runBrightEdge ? 1 : 0;
+                var runRT = runRankTracker ? 1 : 0;
+
+                string query = $"UPDATE settings SET email = '{ email }', password='{ password }', " +
+                    $"run_bright_edge = '{ runBE }', run_rank_tracker = '{ runRT }' WHERE Id IS NOT NULL";
                 var result = executeQuery(query);
                 if (result > 0)
                     return new User { Email = email, Password = password };

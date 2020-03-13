@@ -42,6 +42,36 @@ namespace BrightEdgeAutomationTool
             return replace;
         }
 
+        public static List<KeywordResultValue> GetResultSheetData(WorkbookPart workbookPart)
+        {
+            var mainSheetPart = GetWorksheetPart(workbookPart, "Results");
+
+            List<KeywordResultValue> ResultList = new List<KeywordResultValue>();
+            var rows = mainSheetPart.Worksheet.GetFirstChild<SheetData>().Elements<Row>();
+            
+
+            for (var i = 5; i < rows.Count(); i++)
+            {
+                var row = rows.ElementAtOrDefault<Row>(i);
+                var keyCell = GetRowCells(row).ElementAtOrDefault<Cell>(1);
+                var volCell = GetRowCells(row).ElementAtOrDefault<Cell>(2);
+
+                var keyValue = GetCellValue(keyCell, workbookPart);
+                var volValue = GetCellValue(volCell, workbookPart);
+
+                if (!string.IsNullOrEmpty(keyValue))
+                {
+                    ResultList.Add(new KeywordResultValue { Keyword = keyValue, Volume = Convert.ToDecimal(volValue) });
+                }
+
+            }
+
+            return ResultList;
+
+        }
+
+
+
         public static List<string> MatchedSheets = new List<string>();
 
         public static (List<string>, int) GetKeywordsFromSheet(string sheetName)
@@ -204,11 +234,6 @@ namespace BrightEdgeAutomationTool
             string relId = resultSheet.Id;
             return (WorksheetPart)workbookPart.GetPartById(relId);
         }
-
-
-
-
-
 
         // Retrieve the value of a cell, given a file name, sheet name,
         // and address name.

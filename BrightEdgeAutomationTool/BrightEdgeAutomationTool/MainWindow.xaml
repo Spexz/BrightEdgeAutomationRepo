@@ -357,6 +357,7 @@
                         <RowDefinition Height="120" />
                         <RowDefinition Height="80" />
                         <RowDefinition Height="80" />
+                        <RowDefinition Height="90" />
                         <RowDefinition Height="80" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
@@ -379,8 +380,23 @@
                         <PasswordBox x:Name="password" Style="{StaticResource password-field}" />
                     </StackPanel>
 
+                    <StackPanel Grid.Row="3">
+                        <Label Foreground="White" FontSize="15">Tools to Run</Label>
+                        
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="bright_edge" VerticalAlignment="Center" />
+                            <Label Foreground="White" FontSize="15">Bright Edge</Label>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="rank_tracker" VerticalAlignment="Center" />
+                            <Label Foreground="White" FontSize="15" >Rank Tracker</Label>
+                        </StackPanel>
+
+                    </StackPanel>
+
                     <Button x:Name="saveSettings"
-                        Grid.Row="3" Width="auto" 
+                        Grid.Row="4" Width="auto" 
                             Style="{StaticResource saveSettingsButton}"
                         Height="48" Margin="0 15 5 0"
                         Click="SaveSettings_Click">
@@ -394,7 +410,7 @@
                     </Button>
 
                     <StackPanel x:Name="success" Visibility="Collapsed"
-                                Orientation="Horizontal" Grid.Row="4" 
+                                Orientation="Horizontal" Grid.Row="5" 
                                 VerticalAlignment="Top"
                                 Height="50" HorizontalAlignment="Center">
                         <TextBlock FontSize="30" FontWeight="Bold" 
