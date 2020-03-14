@@ -92,12 +92,16 @@ namespace BrightEdgeAutomationTool
     */
     #endregion
 
+    /// <summary>
+    /// User settings
+    /// </summary>
     public class User
     {
         public string Email { get; set; }
         public string Password { get; set; }
         public bool RunBrightEdge { get; set; }
         public bool RunRankTracker { get; set; }
+        public string RTExportPath { get; set; }
     }
 
 
@@ -149,7 +153,7 @@ namespace BrightEdgeAutomationTool
             if (!checkIfExist("settings"))
             {
                 sqlCommand = "CREATE TABLE settings ( id INTEGER PRIMARY KEY AUTOINCREMENT, email VARCHAR(62), password VARCHAR(32)," +
-                    " run_bright_edge BOOL DEFAULT 1, run_rank_tracker BOOL DEFAULT 0 )";
+                    " run_bright_edge BOOL DEFAULT 1, run_rank_tracker BOOL DEFAULT 0, rt_export_path VARCHAR(260) DEFAULT '' )";
                 executeQuery(sqlCommand);
                 executeQuery("INSERT INTO settings (email, password) VALUES ('john.connolly@galileotechmedia.com', '')");
             }
@@ -190,13 +194,15 @@ namespace BrightEdgeAutomationTool
             while (rdr.Read())
             {
                 return new User { Email = rdr.GetString(1), Password = rdr.GetString(2),
-                    RunBrightEdge = rdr.GetBoolean(3), RunRankTracker = rdr.GetBoolean(4)};
+                    RunBrightEdge = rdr.GetBoolean(3), RunRankTracker = rdr.GetBoolean(4),
+                    RTExportPath = rdr.GetString(5)
+                };
             }
 
             return null;
         }
 
-        public User UpdateUser(string email, string password, bool runBrightEdge, bool runRankTracker)
+        public User UpdateUser(string email, string password, bool runBrightEdge, bool runRankTracker, string export_path)
         {
             try
             {
@@ -204,7 +210,8 @@ namespace BrightEdgeAutomationTool
                 var runRT = runRankTracker ? 1 : 0;
 
                 string query = $"UPDATE settings SET email = '{ email }', password='{ password }', " +
-                    $"run_bright_edge = '{ runBE }', run_rank_tracker = '{ runRT }' WHERE Id IS NOT NULL";
+                    $"run_bright_edge = '{ runBE }', run_rank_tracker = '{ runRT }', rt_export_path = '{ export_path }' " +
+                    $"WHERE Id IS NOT NULL";
                 var result = executeQuery(query);
                 if (result > 0)
                     return new User { Email = email, Password = password };

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BrightEdgeAutomationTool"
         mc:Ignorable="d"
-        Title="BrightEdge Tool" Height="600" MinHeight="400"
+        Title="BrightEdge Tool" Height="650" MinHeight="600"
         Width="550" MaxWidth="555" MinWidth="555"
         Closed="Window_Closed" 
         WindowStartupLocation="CenterScreen" Icon="images/automation-64.ico">
@@ -129,6 +129,30 @@
 
             </Style>
 
+            <Style TargetType="Button" x:Key="browseButton">
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="Foreground" Value="White" />
+
+                <Setter Property="Background" Value="#229552" />
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                CornerRadius="2"
+                                BorderThickness="1"
+                                Padding="5"
+                                BorderBrush="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                </ContentPresenter>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
+            </Style>
+
             <Style TargetType="TextBox" x:Key="input-field">
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="FontSize" Value="12" />
@@ -141,7 +165,7 @@
                         <ControlTemplate TargetType="{x:Type TextBoxBase}">
                             <Border Background="{TemplateBinding Background}"   
                                  x:Name="Bd" BorderBrush="Transparent" 
-                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
                                 <ScrollViewer x:Name="PART_ContentHost"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -173,7 +197,7 @@
                         <ControlTemplate TargetType="{x:Type PasswordBox}">
                             <Border Background="{TemplateBinding Background}"   
                                  x:Name="Bd" BorderBrush="Transparent" 
-                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
                                 <ScrollViewer x:Name="PART_ContentHost"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -350,11 +374,12 @@
                     </StackPanel>
                 </Button>
             </Grid>
-            <Border BorderThickness="1" Width="300" Padding="20 10"
+            <Border BorderThickness="1" Width="300" Padding="10 10"
                     Background="{StaticResource tool-green}" >
                 <Grid >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="120" />
+                        <RowDefinition Height="80" />
                         <RowDefinition Height="80" />
                         <RowDefinition Height="80" />
                         <RowDefinition Height="90" />
@@ -381,6 +406,21 @@
                     </StackPanel>
 
                     <StackPanel Grid.Row="3">
+                        <Label Foreground="White" FontSize="15">Rank Tracker CSV Export Path</Label>
+                        <StackPanel Orientation="Horizontal" Margin="0">
+                            <TextBox x:Name="rt_export_path" Style="{StaticResource input-field}" Width="245" />
+                            <Button x:Name="setRTExportPath" Click="setRTExportPath_Click"
+                                    Style="{StaticResource browseButton}" >
+                                <TextBlock FontSize="20" FontWeight="Bold" 
+                                       Foreground="white"
+                                       HorizontalAlignment="Center"
+                                 Text="&#xf65e;" FontFamily="{StaticResource FontAwesome-Solid}"></TextBlock>
+                            </Button>
+                        </StackPanel>
+                        
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4">
                         <Label Foreground="White" FontSize="15">Tools to Run</Label>
                         
                         <StackPanel Orientation="Horizontal">
@@ -396,7 +436,7 @@
                     </StackPanel>
 
                     <Button x:Name="saveSettings"
-                        Grid.Row="4" Width="auto" 
+                        Grid.Row="5" Width="auto" 
                             Style="{StaticResource saveSettingsButton}"
                         Height="48" Margin="0 15 5 0"
                         Click="SaveSettings_Click">
@@ -410,7 +450,7 @@
                     </Button>
 
                     <StackPanel x:Name="success" Visibility="Collapsed"
-                                Orientation="Horizontal" Grid.Row="5" 
+                                Orientation="Horizontal" Grid.Row="6" 
                                 VerticalAlignment="Top"
                                 Height="50" HorizontalAlignment="Center">
                         <TextBlock FontSize="30" FontWeight="Bold" 

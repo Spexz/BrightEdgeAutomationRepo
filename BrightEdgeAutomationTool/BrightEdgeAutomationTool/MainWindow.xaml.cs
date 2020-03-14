@@ -77,6 +77,7 @@ namespace BrightEdgeAutomationTool
             password.Password = user.Password;
             bright_edge.IsChecked = user.RunBrightEdge;
             rank_tracker.IsChecked = user.RunRankTracker;
+            rt_export_path.Text = user.RTExportPath;
         }
 
         private string GetPathToChrome()
@@ -426,7 +427,7 @@ meeting hotel in downtown puchong financial corporate centre";
                 }
 
                 // Start the process
-                RankTrackerPuppetMaster.StartProcess(dirForRT);
+                RankTrackerPuppetMaster.StartProcess(dirForRT, user);
 
                 dirForRT = null;
             }
@@ -558,6 +559,7 @@ meeting hotel in downtown puchong financial corporate centre";
             var passwordValue = password.Password.ToString();
             var BEValue = (bool)bright_edge.IsChecked;
             var RTValue = (bool)rank_tracker.IsChecked;
+            var RTExportPathValue = rt_export_path.Text;
 
             if (emailValue == "" || passwordValue == "")
             {
@@ -566,7 +568,7 @@ meeting hotel in downtown puchong financial corporate centre";
                 return;
             }
 
-            var user = database.UpdateUser(emailValue, passwordValue, BEValue, RTValue);
+            var user = database.UpdateUser(emailValue, passwordValue, BEValue, RTValue, RTExportPathValue);
 
             if(user != null)
             {
@@ -599,6 +601,19 @@ meeting hotel in downtown puchong financial corporate centre";
                 ShowHideMenu("sbShowRightMenu", pnlRightMenu);
                 overlay.Visibility = Visibility.Visible;
                 IsRightMenuVisible = true;
+            }
+        }
+
+        private void setRTExportPath_Click(object sender, RoutedEventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    rt_export_path.Text = fbd.SelectedPath;
+                }
             }
         }
     }
