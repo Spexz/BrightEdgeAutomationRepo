@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,14 +10,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
 
 namespace BrightEdgeAutomationTool
 {
     public static class RankTrackerPuppetMaster
     {
         private static User settings;
+        public static MainWindow MainWindow;
         public static void StartProcess(DirectoryInfo directory, User user)
         {
+
+
             if (!HWNDHelper.IsRankTrackerOpen())
             {
                 System.Windows.MessageBox.Show("Please ensure Rank Tracker is open!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -26,9 +31,11 @@ namespace BrightEdgeAutomationTool
             var rankTrackerHandle = HWNDHelper.GetRankTrackerWindow();
             if (rankTrackerHandle == IntPtr.Zero)
             {
-                MessageBox.Show("Could not find Rank Tracker Window");
+                System.Windows.MessageBox.Show("Could not find Rank Tracker Window");
                 return;
             }
+
+            MainWindow.UpdateStatus($"{DateTime.Now} | Starting Rank Tracker process");
 
             settings = user;
 
@@ -37,7 +44,9 @@ namespace BrightEdgeAutomationTool
 
             foreach(FileInfo file in files)
             {
-                SpreadsheetHelper.MatchedSheets.Clear();
+
+                MainWindow.UpdateStatus($"{DateTime.Now} | Processing file {file.Name}");
+
                 byte[] byteArray;
                 try
                 {
@@ -74,85 +83,165 @@ namespace BrightEdgeAutomationTool
                             }*/
 
                             var keywordListStr = distinctResultSheetData.Select(x => x.Keyword).Aggregate((x, y) => x + "\n" + y);
+                            string rankTrackerCsvFile = null;
 
-                            /*HWNDHelper.BringWindowToFront(rankTrackerHandle);
-                            HWNDHelper.SetRankTrackerSizeAndPosition(rankTrackerHandle);
+                            var result = LoopUntil(() => {
 
-                            RunRankTrackerProcess(keywordListStr);*/
+                                HWNDHelper.BringWindowToFront(rankTrackerHandle);
+                                Thread.Sleep(1000);
+                                HWNDHelper.SetRankTrackerSizeAndPosition(rankTrackerHandle, (msg) => {
+                                    MainWindow.UpdateStatus(msg);
+                                    return true;
+                                } );
+                                
+                                
+
+                                rankTrackerCsvFile = RunRankTrackerProcess(keywordListStr);
+                                return true; // to be removed
+
+                                if(String.IsNullOrEmpty(rankTrackerCsvFile))
+                                {
+                                    PressEscape();
+                                    Thread.Sleep(500);
+                                    PressEscape();
+                                    DeleteKeywords();
+
+                                    return false;
+                                }
+
+                                return true;
+                            }, TimeSpan.FromMinutes(60));
 
 
-                            // Process the Rank Tracker csv
-                            var exportedFile = @"C:\Users\adria\OneDrive\Documents\Upwork\John Keyword\BrightEdgeAutomation\Rank Tracker Results Example.csv";
+                            // Process the Rank Tracker csv // to be removed
+                            rankTrackerCsvFile = @"C:\Users\Glacia\Desktop\Tests\RT - Test\Rank Tracker Results Example.csv";
 
-                            List<KeywordResultValue> RankTrackerKeywords = File.ReadAllLines(exportedFile)
+                            List<KeywordResultValue> RankTrackerKeywords = File.ReadAllLines(rankTrackerCsvFile)
                                 .Skip(1).Select(v => KeywordResultValue.FromRankTrackerCsv(v))
                                 .Where(v => v != null).ToList();
+
+                            //Console.WriteLine(rankTrackerCsvFile);
                             
 
                             distinctResultSheetData.ToList().ForEach(k => {
-                                var item = RankTrackerKeywords.SingleOrDefault(l => l.Keyword.Equals(k.Keyword));
-                                k.GoogleRank = item.GoogleRank;
-                                k.RankingPage = item.RankingPage;
+                                //var item = RankTrackerKeywords.SingleOrDefault(l => l.Keyword.Equals(k.Keyword));
+                                var item = RankTrackerKeywords.SingleOrDefault(l =>
+                                String.Compare(l.Keyword, k.Keyword, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols) == 0);
+                                //String.Compare(s1, s2, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols) == 0
+                                if (item != null)
+                                {
+                                    k.GoogleRank = item.GoogleRank;
+                                    k.RankingPage = item.RankingPage;
+                                }
+                                
                             });
 
-                            var finalResultSheetData = distinctResultSheetData.Select(d => d.RankingPage.Contains(mainSheetData.Marsha.ToLower()));
+                            var finalResultSheetData = distinctResultSheetData.Where(d => d.RankingPage == null ? false : 
+                                d.RankingPage.Contains(mainSheetData.Marsha.ToLower())).ToList();
+
+                            MainWindow.UpdateStatus($"{DateTime.Now} | Rank Tracker: Pulled {finalResultSheetData.Count()} Keywords from {file.Name}");
 
                             // Write final result sheet data to the results sheet
+
+                            /*foreach (var res in finalResultSheetData)
+                            {
+                                Console.WriteLine($"{res.Keyword} - {res.Volume} - {res.GoogleRank} - {res.RankingPage}");
+                            }*/
+
+                            SpreadsheetHelper.RTUpdateResultSheet(workbookPart, finalResultSheetData);
+                            
+                            spreadsheetDocument.WorkbookPart.Workbook.Save();
+
+                            /*if (File.Exists(rankTrackerCsvFile))
+                            {
+                                File.Delete(rankTrackerCsvFile);
+                            }*/
                         }
                     }
+
+                    // Save
+                    File.WriteAllBytes(file.FullName, stream.ToArray());
                 }
             }
         }
 
         public static string RunRankTrackerProcess(string keywordListStr)
         {
-            
+            return ""; // to be removed
 
-            Clipboard.SetText(keywordListStr);
+
+            var rtHwnd = HWNDHelper.GetRankTrackerWindow();
+
+            System.Windows.Clipboard.SetText(keywordListStr);
+            Thread.Sleep(2000);
+
+            HWNDHelper.WaitForWindowToRespond(rtHwnd);
 
             // Click the add keyword button
-            LeftMouseClick(382, 146);
-            Thread.Sleep(1000);
+            LeftMouseClick(565, 137);
+            Thread.Sleep(2000);
+            WaitForCursor();
+            HWNDHelper.FindAndBringFwd("Add New Keywords");
 
             // Click in the keyword input area
-            LeftMouseClick(335, 303);
-            Thread.Sleep(1000);
+            LeftMouseClick(590, 337);
+            Thread.Sleep(2000);
+            WaitForCursor();
 
             // Paste keywords
             PressPaste();
+            Thread.Sleep(2000);
+            WaitForCursor();
 
             // Click Next
-            LeftMouseClick(686, 543);
+            LeftMouseClick(811, 575);
             Thread.Sleep(2000);
+            WaitForCursor();
 
 
             // Click Finish
-            LeftMouseClick(770, 542);
+            LeftMouseClick(919, 575);
             Thread.Sleep(2000);
+            WaitForCursor();
 
-            string pGreenColor = "#67B847"; // Progressbar green color //#61A032
+            string pGreenColor = "#67B847"; // Progressbar green color
+            string pGreenColor2 = "#61A032"; // Progressbar green color
             string pDarkColor = "#1F2530"; // Progressbar dark color
 
             var result = LoopUntil(() => {
-                var c = HexConverter(GetColorAt(180, 596)); //184, 596
-                if (!c.Equals(pGreenColor) && !c.Equals(pDarkColor))
+                var c = HexConverter(GetColorAt(134, 656));
+                if (!c.Equals(pGreenColor) && !c.Equals(pDarkColor) && !c.Equals(pGreenColor2))
                     return true;
                 return false;
-            }, TimeSpan.FromSeconds(60 * 1000 * 3)); // should be way longer in release
+            }, TimeSpan.FromSeconds(60 * 1000 * 5)); // should be way longer in release
 
-            Thread.Sleep(1000); // should be longer in release
+            Thread.Sleep(2000); // should be longer in release
 
             // Click Download button
-            LeftMouseClick(1057, 145);
+            LeftMouseClick(1310, 137);
+            Thread.Sleep(2000);
+            WaitForCursor();
+
+#if DEBUG
+            //For trial version only
+            LeftMouseClick(981, 128);
             Thread.Sleep(1000);
+            WaitForCursor();
+
+            PressEnter();
+            Thread.Sleep(1000);
+            WaitForCursor();
+#endif
+
 
             // Save csv file
             //Keywords & rankings - test.csv
             var csvFileName = $"keywords_rankings_{DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond}.csv";
             SaveCsv(csvFileName);
             Thread.Sleep(1000);
+            WaitForCursor();
 
-            string exporterdFileName = "";
+            string exportedFileName = "";
             
             // Get csv file
             var csvResult = LoopUntil(() => {
@@ -160,20 +249,20 @@ namespace BrightEdgeAutomationTool
                                         .Where(x => x.EndsWith(csvFileName));
                 if(downloadedFiles.Count() > 0)
                 {
-                    exporterdFileName = downloadedFiles.FirstOrDefault();
+                    exportedFileName = downloadedFiles.FirstOrDefault();
                     return true;
                 }
 
 
                 return false;
-            }, TimeSpan.FromMinutes(1));
+            }, TimeSpan.FromMinutes(20));
 
 
 
             // Click in the keywords table and Delete keywords
             DeleteKeywords();
 
-            return exporterdFileName;
+            return exportedFileName;
         }
 
 
@@ -240,6 +329,7 @@ namespace BrightEdgeAutomationTool
         public const int VK_MENU = 0x12; //ALT key code
         public const int VK_DELETE = 0x2E; //DEL key code
         public const int VK_RETURN = 0x0D; //ENTER key code
+        public const int VK_ESCAPE = 0x1B; //Escape key code
 
         public const int A = 0x41; //A key code
         public const int C = 0x43; //C key code
@@ -258,22 +348,34 @@ namespace BrightEdgeAutomationTool
 
         public static void SaveCsv(string filename)
         {
-            AltN(); Thread.Sleep(500);
-            CtrlA(); Thread.Sleep(500);
+            HWNDHelper.FindAndBringFwd("Save");
+            AltN(); Thread.Sleep(1000);
+            WaitForCursor();
+            CtrlA(); Thread.Sleep(1000);
+            WaitForCursor();
 
-            Clipboard.SetText(filename);
-            PressPaste(); Thread.Sleep(500);
-            PressEnter(); Thread.Sleep(500);
+            System.Windows.Clipboard.SetText(filename);
+            PressPaste(); Thread.Sleep(1000);
+            WaitForCursor();
+            PressEnter(); Thread.Sleep(3000);
+            WaitForCursor();
             // Do not open folder
-            AltN(); Thread.Sleep(500);
+            AltN(); Thread.Sleep(1000);
         }
 
         public static void DeleteKeywords()
         {
-            LeftMouseClick(600, 222); Thread.Sleep(500);
-            CtrlA(); Thread.Sleep(500);
-            PressDelete(); Thread.Sleep(500);
-            AltY(); Thread.Sleep(500);
+            LeftMouseClick(718, 213); Thread.Sleep(1000);
+            WaitForCursor();
+
+            CtrlA(); Thread.Sleep(1000);
+            WaitForCursor();
+
+            PressDelete(); Thread.Sleep(3000);
+            WaitForCursor();
+            HWNDHelper.FindAndBringFwd("Removal confirmation");
+
+            AltY(); Thread.Sleep(1000);
         }
 
         public static void AltN()
@@ -331,6 +433,12 @@ namespace BrightEdgeAutomationTool
             keybd_event(VK_DELETE, 0, KEYEVENTF_KEYUP, 0);
         }
 
+        public static void PressEscape()
+        {
+            keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYDOWN, 0);
+            keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYUP, 0);
+        }
+
 
 
         //This is a replacement for Cursor.Position in WinForms
@@ -351,6 +459,51 @@ namespace BrightEdgeAutomationTool
             Thread.Sleep(100);
             mouse_event(MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
         }
+
+
+        private static void WaitForCursor()
+        {
+            LoopUntil(() => {
+                if (IsWaitCursor() == false)
+                    return true;
+
+                return false;
+            }, TimeSpan.FromMinutes(1));
+        }
+
+        private static bool IsWaitCursor()
+        {
+            var h = Cursors.WaitCursor.Handle;
+
+            CURSORINFO pci;
+            pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
+            GetCursorInfo(out pci);
+            //Console.WriteLine(pci.hCursor.ToString());
+            //Console.WriteLine(pci.hCursor == h);
+            return pci.hCursor == h;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct POINT
+        {
+            public Int32 x;
+            public Int32 y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct CURSORINFO
+        {
+            public Int32 cbSize;        // Specifies the size, in bytes, of the structure. 
+                                        // The caller must set this to Marshal.SizeOf(typeof(CURSORINFO)).
+            public Int32 flags;         // Specifies the cursor state. This parameter can be one of the following values:
+                                        //    0             The cursor is hidden.
+                                        //    CURSOR_SHOWING    The cursor is showing.
+            public IntPtr hCursor;          // Handle to the cursor. 
+            public POINT ptScreenPos;       // A POINT structure that receives the screen coordinates of the cursor. 
+        }
+
+        [DllImport("user32.dll")]
+        static extern bool GetCursorInfo(out CURSORINFO pci);
 
 
 

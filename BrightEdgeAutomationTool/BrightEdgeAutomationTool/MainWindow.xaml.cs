@@ -42,8 +42,7 @@ namespace BrightEdgeAutomationTool
         {
             InitializeComponent();
 
-            // Disable start button initially 
-            //start.IsEnabled = false;
+            
 
             SHGetKnownFolderPath(KnownFolder.Downloads, 0, IntPtr.Zero, out DownloadsFolder);
 
@@ -58,6 +57,35 @@ namespace BrightEdgeAutomationTool
             });
 
             t.Start();*/
+
+            // Disable start button initially 
+            SetButtonState();
+
+
+        }
+
+        private void SetButtonState()
+        {
+            if (user.RunRankTracker == true && user.RunBrightEdge == true)
+            {
+                start.IsEnabled = false;
+                launchChrome.IsEnabled = true;
+            }
+            else if (user.RunRankTracker == true && user.RunBrightEdge == false)
+            {
+                start.IsEnabled = true;
+                launchChrome.IsEnabled = false;
+            }
+            else if (user.RunRankTracker == false && user.RunBrightEdge == true)
+            {
+                start.IsEnabled = false;
+                launchChrome.IsEnabled = true;
+            }
+            else
+            {
+                start.IsEnabled = false;
+                launchChrome.IsEnabled = false;
+            }
         }
 
         private void CheckIfRankTrackerIsOpen()
@@ -405,6 +433,9 @@ meeting hotel in downtown puchong financial corporate centre";
             // Start Rank Tracker Processing
             if (user.RunRankTracker)
             {
+                RankTrackerPuppetMaster.MainWindow = this;
+
+
                 if (dirForRT == null)
                 {
 
@@ -580,6 +611,8 @@ meeting hotel in downtown puchong financial corporate centre";
                 };
                 timer.Start();
                 this.user = user;
+
+                SetButtonState();
 
                 return;
             }

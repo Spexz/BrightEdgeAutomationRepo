@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BrightEdgeAutomationTool
@@ -10,10 +12,24 @@ namespace BrightEdgeAutomationTool
     public static class HWNDHelper
     {
 
+        public static bool FindAndBringFwd(string title)
+        {
+            var target_hwnd = FindWindowByCaption(IntPtr.Zero, title);
+
+            if (target_hwnd == IntPtr.Zero)
+            {
+                //Console.WriteLine("not found");
+                return false;
+            }
+
+            BringWindowToFront(target_hwnd);
+            return true;
+        }
+
         public static bool IsRankTrackerOpen()
         {
             var handles = FindWindowsWithText("Rank Tracker v");
-            Console.WriteLine(handles.Count());
+            //Console.WriteLine(handles.Count());
 
             IntPtr target_hwnd = handles.FirstOrDefault();
 
@@ -28,7 +44,7 @@ namespace BrightEdgeAutomationTool
         public static IntPtr GetRankTrackerWindow()
         {
             var handles = FindWindowsWithText("Rank Tracker v");
-            Console.WriteLine(handles.Count());
+            //Console.WriteLine(handles.Count());
 
             IntPtr target_hwnd = handles.FirstOrDefault();
 
@@ -41,15 +57,64 @@ namespace BrightEdgeAutomationTool
             SetForegroundWindow(target_hwnd);
         }
 
-        public static void SetRankTrackerSizeAndPosition(IntPtr target_hwnd)
+        public static void SetRankTrackerSizeAndPosition(IntPtr target_hwnd, Func<string, bool> updateStatus)
         {
             // Set the window's position.
-            int width = 1100;
-            int height = 630;
-            int x = 10;
-            int y = 10;
+            int width = 1370;
+            int height = 700;
+            int x = 0;
+            int y = 0;
+
             var results = SetWindowPos(target_hwnd, IntPtr.Zero, x, y, width, height, 0);
+            updateStatus("SetWindowPos success: " + results.ToString());
+            updateStatus("SetWindowPos Error#: " + Marshal.GetLastWin32Error().ToString());
+
+
+            results = MoveWindow(target_hwnd, x, y, width, height, false);
+            updateStatus("MoveWindow success: " + results.ToString());
+            updateStatus("MoveWindow Error#: " + Marshal.GetLastWin32Error().ToString());
+
+            Debug.WriteLine(results);
+            Debug.WriteLine(Marshal.GetLastWin32Error());
         }
+
+        public static void WaitForWindowToRespond(IntPtr hwnd, int timeoutMinutes = 5)
+        {
+            LoopUntil(() => {
+                if (IsHungAppWindow(hwnd) == false)
+                    return true;
+
+                return false;
+            }, TimeSpan.FromMinutes(timeoutMinutes));
+        }
+
+
+        public static bool LoopUntil(Func<bool> task, TimeSpan timeSpan)
+        {
+            bool success = false;
+            int elapsed = 0;
+            while ((!success) && (elapsed < timeSpan.TotalMilliseconds))
+            {
+                Thread.Sleep(100);
+                elapsed += 100;
+                success = task();
+            }
+            return success;
+        }
+
+
+
+
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool IsHungAppWindow(IntPtr hWnd);
+
+
+
+        [DllImport("kernel32.dll")]
+        static extern uint GetLastError();
+
 
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -112,6 +177,16 @@ namespace BrightEdgeAutomationTool
             });
         }
 
+        public static IEnumerable<IntPtr> FindChildWindowsWithText(string titleText, IntPtr parentWnd)
+        {
+            var parent = GetParent(parentWnd);
+
+            return FindWindows(delegate (IntPtr wnd, IntPtr param)
+            {
+                return GetWindowText(wnd).Contains(titleText) && wnd == parent;
+            });
+        }
+
         // Define the FindWindow API function.
         [DllImport("user32.dll", EntryPoint = "FindWindow",
             SetLastError = true)]
@@ -156,5 +231,8 @@ namespace BrightEdgeAutomationTool
             IgnoreZOrder = 0x0004,
             ShowWindow = 0x0040,
         }
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        public static extern IntPtr GetParent(IntPtr hWnd);
     }
 }

@@ -24,6 +24,7 @@
                 <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style>
 
+            
 
             <Style TargetType="Button">
                 <Setter Property="Margin" Value="2"/>

@@ -50,7 +50,7 @@ namespace BrightEdgeAutomationTool
             var rows = mainSheetPart.Worksheet.GetFirstChild<SheetData>().Elements<Row>();
             
 
-            for (var i = 5; i < rows.Count(); i++)
+            for (var i = 0; i < rows.Count(); i++)
             {
                 var row = rows.ElementAtOrDefault<Row>(i);
                 var keyCell = GetRowCells(row).ElementAtOrDefault<Cell>(1);
@@ -174,6 +174,58 @@ namespace BrightEdgeAutomationTool
 
             // Save the new worksheet.
             newWorksheetPart.Worksheet.Save();
+
+
+
+            return true;
+        }
+
+        public static bool RTUpdateResultSheet(WorkbookPart workbookPart, List<KeywordResultValue> keywordStats)
+        {
+            var resultSheetPart = GetWorksheetPart(workbookPart, "Results");
+
+            // Get the SharedStringTablePart. If it does not exist, create a new one.
+            SharedStringTablePart shareStringPart;
+            if (workbookPart.GetPartsOfType<SharedStringTablePart>().Count() > 0)
+            {
+                shareStringPart = workbookPart.GetPartsOfType<SharedStringTablePart>().First();
+            }
+            else
+            {
+                shareStringPart = workbookPart.AddNewPart<SharedStringTablePart>();
+            }
+
+
+            for (uint i = 0; i < keywordStats.Count(); i++)
+            {
+                Cell statG = InsertCellInWorksheet("G", i + 2, resultSheetPart);
+                Cell statH = InsertCellInWorksheet("H", i + 2, resultSheetPart);
+                Cell statI = InsertCellInWorksheet("I", i + 2, resultSheetPart);
+                Cell statJ = InsertCellInWorksheet("J", i + 2, resultSheetPart);
+
+                // Insert the text into the SharedStringTablePart.
+                var index = InsertSharedStringItem(keywordStats.ElementAt((int)i).Keyword, shareStringPart);
+                // Set the value of cell G*
+                statG.CellValue = new CellValue(index.ToString());
+                statG.DataType = new EnumValue<CellValues>(CellValues.SharedString);
+
+                // Volume
+                statH.CellValue = new CellValue(keywordStats.ElementAt((int)i).Volume.ToString());
+                statH.DataType = new EnumValue<CellValues>(CellValues.Number);
+
+                // Google Ranks
+                statI.CellValue = new CellValue(keywordStats.ElementAt((int)i).GoogleRank);
+                statI.DataType = new EnumValue<CellValues>(CellValues.Number);
+
+                // Ranking page
+                index = InsertSharedStringItem(keywordStats.ElementAt((int)i).RankingPage, shareStringPart);
+                statJ.CellValue = new CellValue(index.ToString());
+                statJ.DataType = new EnumValue<CellValues>(CellValues.SharedString);
+            }
+
+
+            // Save the new worksheet.
+            resultSheetPart.Worksheet.Save();
 
 
 

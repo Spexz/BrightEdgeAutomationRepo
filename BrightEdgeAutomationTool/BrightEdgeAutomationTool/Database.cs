@@ -214,7 +214,7 @@ namespace BrightEdgeAutomationTool
                     $"WHERE Id IS NOT NULL";
                 var result = executeQuery(query);
                 if (result > 0)
-                    return new User { Email = email, Password = password };
+                    return new User { Email = email, Password = password ,RTExportPath = export_path, RunBrightEdge = runBrightEdge, RunRankTracker = runRankTracker };
                 else
                     return null;
             }
