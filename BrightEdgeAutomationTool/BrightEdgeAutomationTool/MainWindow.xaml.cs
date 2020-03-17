@@ -52,7 +52,7 @@ namespace BrightEdgeAutomationTool
 
             // Disable start button initially 
             SetButtonState();
-            RegisterHotKeys();
+            //RegisterHotKeys();
 
         }
 
@@ -84,7 +84,9 @@ namespace BrightEdgeAutomationTool
         {
             RTSetup.MainWindow = this;
             var hotkeyform = new HotKeyForm();
-            RTSetup.RunProcess();
+            RTSetup.HotKeyForm = hotkeyform;
+            status.Clear();
+            RTSetup.RunProcess(RTSetup.RTProcess.Run);
         }
 
         private void CheckIfRankTrackerIsOpen()
@@ -558,6 +560,11 @@ meeting hotel in downtown puchong financial corporate centre";
         public bool IsRightMenuVisible { get; set; } = false;
         private void BtnRightMenuShow_Click(object sender, RoutedEventArgs e)
         {
+            ShowHideMenu();
+        }
+
+        private void ShowHideMenu()
+        {
             if (IsRightMenuVisible)
             {
                 ShowHideMenu("sbHideRightMenu", pnlRightMenu);
@@ -650,6 +657,12 @@ meeting hotel in downtown puchong financial corporate centre";
                 }
             }
         }
+
+        private void updateRTSettings_Click(object sender, RoutedEventArgs e)
+        {
+            ShowHideMenu();
+            RegisterHotKeys();
+        }
     }
 
 
@@ -681,6 +694,9 @@ meeting hotel in downtown puchong financial corporate centre";
             int id = 0;     // The id of the hotkey. 
             // Register Shift + A as global hotkey. 
             RegisterHotKey(this.Handle, id, (int)KeyModifier.Shift, System.Windows.Forms.Keys.A.GetHashCode());
+            // Register Shift + C as global hotkey. 
+            id = 1;
+            RegisterHotKey(this.Handle, id, (int)KeyModifier.Shift, System.Windows.Forms.Keys.C.GetHashCode());
         }
 
         protected override void WndProc(ref Message m)
@@ -696,7 +712,17 @@ meeting hotel in downtown puchong financial corporate centre";
                 KeyModifier modifier = (KeyModifier)((int)m.LParam & 0xFFFF);       // The modifier of the hotkey that was pressed.
                 int id = m.WParam.ToInt32();                                        // The id of the hotkey that was pressed.
 
-                RTSetup.RunProcess();
+                switch(id)
+                {
+                    case 0:
+                        RTSetup.RunProcess(RTSetup.RTProcess.Run);
+                        break;
+                    case 1:
+                        RTSetup.RunProcess(RTSetup.RTProcess.Stop);
+                        break;
+                }
+
+                
                 //System.Windows.MessageBox.Show("Hotkey has been pressed!");
                 // do something
             }

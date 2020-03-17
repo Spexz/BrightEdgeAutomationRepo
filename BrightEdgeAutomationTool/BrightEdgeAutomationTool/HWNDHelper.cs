@@ -58,16 +58,17 @@ namespace BrightEdgeAutomationTool
             SetForegroundWindow(target_hwnd);
         }
 
-        public static void SetRankTrackerSizeAndPosition(IntPtr target_hwnd, Func<string, bool> updateStatus)
+        public static void SetRankTrackerSizeAndPosition(IntPtr target_hwnd, Func<string, bool> updateStatus, RTSettings rtSettings)
         {
+
             // Set the window's position.
-            int width = 1370;
-            int height = 700;
-            int x = 0;
-            int y = 0;
+            int width = rtSettings.RankTrackerRect.Width;  //1370;
+            int height = rtSettings.RankTrackerRect.Height; //700;
+            int x = rtSettings.RankTrackerRect.X; // 0
+            int y = rtSettings.RankTrackerRect.Y; // 0 
 
             var results = SetWindowPos(target_hwnd, IntPtr.Zero, x, y, width, height, 0);
-            updateStatus("SetWindowPos success: " + results.ToString());
+            /*updateStatus("SetWindowPos success: " + results.ToString());
             updateStatus("SetWindowPos Error#: " + Marshal.GetLastWin32Error().ToString());
             updateStatus("SetWindowPos Error Msg: " + new Win32Exception(Marshal.GetLastWin32Error()).Message);
 
@@ -75,10 +76,10 @@ namespace BrightEdgeAutomationTool
             results = MoveWindow(target_hwnd, x, y, width, height, false);
             updateStatus("MoveWindow success: " + results.ToString());
             updateStatus("MoveWindow Error#: " + Marshal.GetLastWin32Error().ToString());
-            updateStatus("MoveWindow Error Msg: " + new Win32Exception(Marshal.GetLastWin32Error()).Message);
+            updateStatus("MoveWindow Error Msg: " + new Win32Exception(Marshal.GetLastWin32Error()).Message);*/
 
 
-            RECT rct;
+            /*RECT rct;
             var rect = new Rectangle();
 
             if (!GetWindowRect(target_hwnd, out rct))
@@ -98,7 +99,7 @@ namespace BrightEdgeAutomationTool
 
 
             Debug.WriteLine(results);
-            Debug.WriteLine(Marshal.GetLastWin32Error());
+            Debug.WriteLine(Marshal.GetLastWin32Error());*/
         }
 
         public static Rectangle GetRankTrackerRect()

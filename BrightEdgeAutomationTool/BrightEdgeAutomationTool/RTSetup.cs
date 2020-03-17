@@ -12,32 +12,55 @@ namespace BrightEdgeAutomationTool
     public static class RTSetup
     {
         public static MainWindow MainWindow;
+        public static HotKeyForm HotKeyForm;
         private delegate void SetCoords();
         private static int Index = 0;
         private const string HOTKEYS = "SHIFT + A";
+        private const string HOTKEY_CANCEL = "SHIFT + C";
         public static RTSettings rtSettings;
+
+        public enum RTProcess
+        {
+            Run,
+            Stop
+        }
 
         private static List<SetCoords> CoordProcesses = new List<SetCoords>()
         {
             Initialize,
             AddRTDimensions,
             AddKeywordsCoords,
+            AddKeywordsInputCoords,
             NextButtonCoords,
             FinishButtonCoords,
             ProgressbarCoords,
             DownloadCoords,
-            TableTopCoords
+            TableTopCoords,
+            Finalizer
         };
 
-        public static void RunProcess()
+        public static void RunProcess(RTProcess rtp)
         {
-            CoordProcesses.ElementAt(Index)();
+            if(rtp == RTProcess.Run)
+            {
+                CoordProcesses.ElementAt(Index)();
+            }
+
+            if (rtp == RTProcess.Stop)
+            {
+                Index = 0;
+                MainWindow.UpdateStatus("Process stopped");
+                HotKeyForm.UnRegisterHotKey();
+            }
         }
 
         private static void Initialize()
         {
             rtSettings = new RTSettings();
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to save Rank Tracker dimensions and postion");
+            MainWindow.UpdateStatus($"Starting the Update Rank Tracker Process");
+            MainWindow.UpdateStatus($"Hit {HOTKEY_CANCEL} to cancel");
+            MainWindow.UpdateStatus($"--------------------------------------------");
+            MainWindow.UpdateStatus($"Hit {HOTKEYS} to save Rank Tracker dimensions and position");
             Index += 1;
         }
 
@@ -56,6 +79,16 @@ namespace BrightEdgeAutomationTool
             var cPosition = Cursor.Position;
             MainWindow.UpdateStatus($"Add Keyword button: X: {cPosition.X} Y: {cPosition.Y}");
             rtSettings.AddKeywordPos = cPosition;
+            Index += 1;
+
+            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the Keyword input area position");
+        }
+
+        private static void AddKeywordsInputCoords()
+        {
+            var cPosition = Cursor.Position;
+            MainWindow.UpdateStatus($"Keyword Input Area: X: {cPosition.X} Y: {cPosition.Y}");
+            rtSettings.KeywordInputPos = cPosition;
             Index += 1;
 
             MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Next' button position");
@@ -95,11 +128,11 @@ namespace BrightEdgeAutomationTool
 
             if (!c.Equals(pGreenColor) && !c.Equals(pDarkColor) && !c.Equals(pGreenColor2))
             {
-                MainWindow.UpdateStatus($"Unable to detect the progressbar based on the color of the selected pixel");
+                MainWindow.UpdateStatus($"Unable to detect the progress bar based on the color of the selected pixel");
                 return;
             }
 
-            MainWindow.UpdateStatus($"Progressbar at: X: {cPosition.X} Y: {cPosition.Y}");
+            MainWindow.UpdateStatus($"Progress Bar at: X: {cPosition.X} Y: {cPosition.Y}");
             rtSettings.ProgressbarPos = cPosition;
             Index += 1;
 
@@ -111,6 +144,7 @@ namespace BrightEdgeAutomationTool
             var cPosition = Cursor.Position;
             MainWindow.UpdateStatus($"Download button: X: {cPosition.X} Y: {cPosition.Y}");
             rtSettings.DownloadPos = cPosition;
+
             Index += 1;
 
             MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the point of the top of the keyword list table");
@@ -123,14 +157,18 @@ namespace BrightEdgeAutomationTool
             MainWindow.UpdateStatus($"Keyword table: X: {cPosition.X} Y: {cPosition.Y}");
             rtSettings.KeywordTblPos = cPosition;
             Index += 1;
-
+            MainWindow.UpdateStatus($"Hit {HOTKEYS} to save settings");
         }
 
-        private static void Finalize()
+        private static void Finalizer()
         {
             Index = 0;
             var result = MainWindow.database.UpdateRTSettings(rtSettings);
             MainWindow.UpdateStatus($"Process complete");
+            HotKeyForm.UnRegisterHotKey();
+
+            var sets = MainWindow.database.GetRTSettings();
+            Console.WriteLine($"Rank Tracker: X:{sets.RankTrackerRect.X} Y:{sets.RankTrackerRect.Y} Width:{sets.RankTrackerRect.Width} Height:{sets.RankTrackerRect.Height}");
         }
 
 
@@ -147,10 +185,12 @@ namespace BrightEdgeAutomationTool
     {
         public System.Drawing.Rectangle RankTrackerRect { get; set; }
         public Point AddKeywordPos { get; set; }
+        public Point KeywordInputPos { get; set; }
         public Point NextPos { get; set; }
         public Point FinishPos { get; set; }
         public Point ProgressbarPos { get; set; }
         public Point DownloadPos { get; set; }
+        public Point CloseUpgradePos { get; set; }
         public Point KeywordTblPos { get; set; }
     }
 }
