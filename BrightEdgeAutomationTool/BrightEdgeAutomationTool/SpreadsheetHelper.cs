@@ -4,8 +4,6 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BrightEdgeAutomationTool
 {
@@ -25,18 +23,18 @@ namespace BrightEdgeAutomationTool
             var countryCell = GetRowCells(row).ElementAtOrDefault<Cell>(8);
             replace.Country = GetCellValue(countryCell, workbookPart);
 
-            for(var i = 5; i < rows.Count(); i++)
+            for (var i = 5; i < rows.Count(); i++)
             {
                 row = rows.ElementAtOrDefault<Row>(i);
                 var pageCell = GetRowCells(row).ElementAtOrDefault<Cell>(8);
                 var pageValue = GetCellValue(pageCell, workbookPart);
 
-                if(pageValue != null)
+                if (pageValue != null)
                 {
                     if (!pageValue.ToString().Equals(""))
                         replace.Pages.Add(pageValue);
                 }
-                
+
             }
 
             return replace;
@@ -48,7 +46,7 @@ namespace BrightEdgeAutomationTool
 
             List<KeywordResultValue> ResultList = new List<KeywordResultValue>();
             var rows = mainSheetPart.Worksheet.GetFirstChild<SheetData>().Elements<Row>();
-            
+
 
             for (var i = 0; i < rows.Count(); i++)
             {
@@ -79,14 +77,15 @@ namespace BrightEdgeAutomationTool
             List<string> keywordList = new List<string>();
             int keywordCount = 0;
             var pagesSheetPart = GetWorksheetPartThatBeginsWith(workbookPart, sheetName.Trim().Substring(0, 3));
-            
-            if(pagesSheetPart != null)
+
+            if (pagesSheetPart != null)
             {
                 var rows = pagesSheetPart.Worksheet.GetFirstChild<SheetData>().Elements<Row>();
 
                 var keywordsRaw = rows.Select(kRow => GetCellValue(GetRowCells(kRow).ElementAtOrDefault(0), workbookPart));
 
-                var keywordsNotNull = keywordsRaw.Where(c => {
+                var keywordsNotNull = keywordsRaw.Where(c =>
+                {
                     if (!string.IsNullOrEmpty(c))
                     {
                         if (c.Equals("0"))
@@ -166,7 +165,7 @@ namespace BrightEdgeAutomationTool
                 // Set the value of cell B*
                 statB.CellValue = new CellValue(index.ToString());
                 statB.DataType = new EnumValue<CellValues>(CellValues.SharedString);
-                
+
                 statC.CellValue = new CellValue(keywordStats.ElementAt((int)i).Volume.ToString());
                 statC.DataType = new EnumValue<CellValues>(CellValues.Number);
             }
@@ -264,7 +263,8 @@ namespace BrightEdgeAutomationTool
             //var resultSheet = workbookPart.Workbook.Descendants<Sheet>()
             //    .FirstOrDefault(s => s.Name.ToString().StartsWith(partialSheetName,StringComparison.CurrentCultureIgnoreCase));
             var resultSheet = workbookPart.Workbook.Descendants<Sheet>()
-                .FirstOrDefault(s => {
+                .FirstOrDefault(s =>
+                {
                     var sheetNameArr = s.Name.ToString().Split(new string[] { " or " }, StringSplitOptions.None);
 
                     foreach (var sheetName in sheetNameArr)

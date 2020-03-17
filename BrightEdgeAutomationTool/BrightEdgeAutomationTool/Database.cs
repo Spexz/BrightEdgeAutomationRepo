@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.Data.Sqlite;
 
 namespace BrightEdgeAutomationTool
 {
@@ -121,11 +116,11 @@ namespace BrightEdgeAutomationTool
                 createDbConnection();
                 createTables();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MessageBox.Show($"Error while initializing to database: {e.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            
+
         }
 
         public void createDbFile()
@@ -193,8 +188,12 @@ namespace BrightEdgeAutomationTool
 
             while (rdr.Read())
             {
-                return new User { Email = rdr.GetString(1), Password = rdr.GetString(2),
-                    RunBrightEdge = rdr.GetBoolean(3), RunRankTracker = rdr.GetBoolean(4),
+                return new User
+                {
+                    Email = rdr.GetString(1),
+                    Password = rdr.GetString(2),
+                    RunBrightEdge = rdr.GetBoolean(3),
+                    RunRankTracker = rdr.GetBoolean(4),
                     RTExportPath = rdr.GetString(5)
                 };
             }
@@ -214,7 +213,7 @@ namespace BrightEdgeAutomationTool
                     $"WHERE Id IS NOT NULL";
                 var result = executeQuery(query);
                 if (result > 0)
-                    return new User { Email = email, Password = password ,RTExportPath = export_path, RunBrightEdge = runBrightEdge, RunRankTracker = runRankTracker };
+                    return new User { Email = email, Password = password, RTExportPath = export_path, RunBrightEdge = runBrightEdge, RunRankTracker = runRankTracker };
                 else
                     return null;
             }

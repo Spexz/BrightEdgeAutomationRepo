@@ -7,20 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Path = System.IO.Path;
 
 namespace BrightEdgeAutomationTool
@@ -42,7 +34,7 @@ namespace BrightEdgeAutomationTool
         {
             InitializeComponent();
 
-            
+
 
             SHGetKnownFolderPath(KnownFolder.Downloads, 0, IntPtr.Zero, out DownloadsFolder);
 
@@ -90,9 +82,9 @@ namespace BrightEdgeAutomationTool
 
         private void CheckIfRankTrackerIsOpen()
         {
-            if(user.RunRankTracker)
+            if (user.RunRankTracker)
             {
-                if(!HWNDHelper.IsRankTrackerOpen())
+                if (!HWNDHelper.IsRankTrackerOpen())
                 {
                     System.Windows.MessageBox.Show("Please ensure Rank Tracker is open!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
@@ -255,7 +247,7 @@ meeting hotel in downtown puchong financial corporate centre";
 
         private void StartPuppetProcess(string selectedPath)
         {
-            
+
             this.Dispatcher.Invoke(() =>
             {
                 start.IsEnabled = false;
@@ -329,7 +321,8 @@ meeting hotel in downtown puchong financial corporate centre";
 
                                     UpdateStatus($"{DateTime.Now} | {pageItem}: keyword count: {keywordCount}");
 
-                                    PuppetMaster.RetryUntilSuccessOrTimeout(() => {
+                                    PuppetMaster.RetryUntilSuccessOrTimeout(() =>
+                                    {
 
 
                                         List<KeywordResultValue> keywordPageStats = new List<KeywordResultValue>();
@@ -428,7 +421,7 @@ meeting hotel in downtown puchong financial corporate centre";
 
                 PuppetMaster.DeleteAllQueries((int)Math.Ceiling((decimal)batchesProcessed / 10));
             }
-                            
+
 
             // Start Rank Tracker Processing
             if (user.RunRankTracker)
@@ -520,7 +513,7 @@ meeting hotel in downtown puchong financial corporate centre";
 
             File.WriteAllBytes(newFilePath, stream.ToArray());
 
-            
+
 
             return (true, new DirectoryInfo(newPath));
         }
@@ -558,7 +551,7 @@ meeting hotel in downtown puchong financial corporate centre";
         public bool IsRightMenuVisible { get; set; } = false;
         private void BtnRightMenuShow_Click(object sender, RoutedEventArgs e)
         {
-            if(IsRightMenuVisible)
+            if (IsRightMenuVisible)
             {
                 ShowHideMenu("sbHideRightMenu", pnlRightMenu);
                 overlay.Visibility = Visibility.Collapsed;
@@ -582,7 +575,7 @@ meeting hotel in downtown puchong financial corporate centre";
             sb.Begin(pnl);
         }
 
-        
+
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
@@ -601,12 +594,13 @@ meeting hotel in downtown puchong financial corporate centre";
 
             var user = database.UpdateUser(emailValue, passwordValue, BEValue, RTValue, RTExportPathValue);
 
-            if(user != null)
+            if (user != null)
             {
                 success.Visibility = Visibility.Visible;
                 var timer = new System.Windows.Forms.Timer();
                 timer.Interval = 2000; // here time in milliseconds
-                timer.Tick += (object s, System.EventArgs ev) => {
+                timer.Tick += (object s, System.EventArgs ev) =>
+                {
                     success.Visibility = Visibility.Collapsed;
                 };
                 timer.Start();

@@ -6,9 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -42,7 +40,7 @@ namespace BrightEdgeAutomationTool
             FileInfo[] files = null;
             files = directory.GetFiles();
 
-            foreach(FileInfo file in files)
+            foreach (FileInfo file in files)
             {
 
                 MainWindow.UpdateStatus($"{DateTime.Now} | Processing file {file.Name}");
@@ -85,21 +83,23 @@ namespace BrightEdgeAutomationTool
                             var keywordListStr = distinctResultSheetData.Select(x => x.Keyword).Aggregate((x, y) => x + "\n" + y);
                             string rankTrackerCsvFile = null;
 
-                            var result = LoopUntil(() => {
+                            var result = LoopUntil(() =>
+                            {
 
                                 HWNDHelper.BringWindowToFront(rankTrackerHandle);
                                 Thread.Sleep(1000);
-                                HWNDHelper.SetRankTrackerSizeAndPosition(rankTrackerHandle, (msg) => {
+                                HWNDHelper.SetRankTrackerSizeAndPosition(rankTrackerHandle, (msg) =>
+                                {
                                     MainWindow.UpdateStatus(msg);
                                     return true;
-                                } );
-                                
-                                
+                                });
+
+
 
                                 rankTrackerCsvFile = RunRankTrackerProcess(keywordListStr);
-                                return true; // to be removed
+                                //return true; // to be removed
 
-                                if(String.IsNullOrEmpty(rankTrackerCsvFile))
+                                if (String.IsNullOrEmpty(rankTrackerCsvFile))
                                 {
                                     PressEscape();
                                     Thread.Sleep(500);
@@ -113,17 +113,22 @@ namespace BrightEdgeAutomationTool
                             }, TimeSpan.FromMinutes(60));
 
 
+                            //return; // to be removed
+
+
+
                             // Process the Rank Tracker csv // to be removed
-                            rankTrackerCsvFile = @"C:\Users\Glacia\Desktop\Tests\RT - Test\Rank Tracker Results Example.csv";
+                            //rankTrackerCsvFile = @"C:\Users\adria\OneDrive\Desktop\Test RT\Rank Tracker Results Example.csv";
 
                             List<KeywordResultValue> RankTrackerKeywords = File.ReadAllLines(rankTrackerCsvFile)
                                 .Skip(1).Select(v => KeywordResultValue.FromRankTrackerCsv(v))
                                 .Where(v => v != null).ToList();
 
                             //Console.WriteLine(rankTrackerCsvFile);
-                            
 
-                            distinctResultSheetData.ToList().ForEach(k => {
+
+                            distinctResultSheetData.ToList().ForEach(k =>
+                            {
                                 //var item = RankTrackerKeywords.SingleOrDefault(l => l.Keyword.Equals(k.Keyword));
                                 var item = RankTrackerKeywords.SingleOrDefault(l =>
                                 String.Compare(l.Keyword, k.Keyword, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols) == 0);
@@ -133,10 +138,10 @@ namespace BrightEdgeAutomationTool
                                     k.GoogleRank = item.GoogleRank;
                                     k.RankingPage = item.RankingPage;
                                 }
-                                
+
                             });
 
-                            var finalResultSheetData = distinctResultSheetData.Where(d => d.RankingPage == null ? false : 
+                            var finalResultSheetData = distinctResultSheetData.Where(d => d.RankingPage == null ? false :
                                 d.RankingPage.Contains(mainSheetData.Marsha.ToLower())).ToList();
 
                             MainWindow.UpdateStatus($"{DateTime.Now} | Rank Tracker: Pulled {finalResultSheetData.Count()} Keywords from {file.Name}");
@@ -149,7 +154,7 @@ namespace BrightEdgeAutomationTool
                             }*/
 
                             SpreadsheetHelper.RTUpdateResultSheet(workbookPart, finalResultSheetData);
-                            
+
                             spreadsheetDocument.WorkbookPart.Workbook.Save();
 
                             /*if (File.Exists(rankTrackerCsvFile))
@@ -167,7 +172,7 @@ namespace BrightEdgeAutomationTool
 
         public static string RunRankTrackerProcess(string keywordListStr)
         {
-            return ""; // to be removed
+            //return ""; // to be removed
 
 
             var rtHwnd = HWNDHelper.GetRankTrackerWindow();
@@ -208,7 +213,8 @@ namespace BrightEdgeAutomationTool
             string pGreenColor2 = "#61A032"; // Progressbar green color
             string pDarkColor = "#1F2530"; // Progressbar dark color
 
-            var result = LoopUntil(() => {
+            var result = LoopUntil(() =>
+            {
                 var c = HexConverter(GetColorAt(134, 656));
                 if (!c.Equals(pGreenColor) && !c.Equals(pDarkColor) && !c.Equals(pGreenColor2))
                     return true;
@@ -224,13 +230,13 @@ namespace BrightEdgeAutomationTool
 
 #if DEBUG
             //For trial version only
-            LeftMouseClick(981, 128);
+            /*LeftMouseClick(981, 128);
             Thread.Sleep(1000);
             WaitForCursor();
 
             PressEnter();
             Thread.Sleep(1000);
-            WaitForCursor();
+            WaitForCursor();*/
 #endif
 
 
@@ -242,12 +248,13 @@ namespace BrightEdgeAutomationTool
             WaitForCursor();
 
             string exportedFileName = "";
-            
+
             // Get csv file
-            var csvResult = LoopUntil(() => {
+            var csvResult = LoopUntil(() =>
+            {
                 var downloadedFiles = Directory.GetFiles(settings.RTExportPath)
                                         .Where(x => x.EndsWith(csvFileName));
-                if(downloadedFiles.Count() > 0)
+                if (downloadedFiles.Count() > 0)
                 {
                     exportedFileName = downloadedFiles.FirstOrDefault();
                     return true;
@@ -366,13 +373,13 @@ namespace BrightEdgeAutomationTool
         public static void DeleteKeywords()
         {
             LeftMouseClick(718, 213); Thread.Sleep(1000);
-            WaitForCursor();
+            //WaitForCursor();
 
             CtrlA(); Thread.Sleep(1000);
-            WaitForCursor();
+            //WaitForCursor();
 
             PressDelete(); Thread.Sleep(3000);
-            WaitForCursor();
+            //WaitForCursor();
             HWNDHelper.FindAndBringFwd("Removal confirmation");
 
             AltY(); Thread.Sleep(1000);
@@ -454,16 +461,22 @@ namespace BrightEdgeAutomationTool
         //This simulates a left mouse click
         public static void LeftMouseClick(int xpos, int ypos)
         {
+            var result = HWNDHelper.BlockInput(true);
+            Console.WriteLine($"Block input: {result}");
+
             SetCursorPos(xpos, ypos);
             mouse_event(MOUSEEVENTF_LEFTDOWN, xpos, ypos, 0, 0);
             Thread.Sleep(100);
             mouse_event(MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
+
+            HWNDHelper.BlockInput(false);
         }
 
 
         private static void WaitForCursor()
         {
-            LoopUntil(() => {
+            LoopUntil(() =>
+            {
                 if (IsWaitCursor() == false)
                     return true;
 

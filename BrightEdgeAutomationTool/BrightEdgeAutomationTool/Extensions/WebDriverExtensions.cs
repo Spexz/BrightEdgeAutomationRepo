@@ -10,7 +10,7 @@ namespace BrightEdgeAutomationTool
         public static IWebElement FindElement(this IWebDriver driver, By by, int timeoutInSeconds)
         {
             Thread.Sleep(1000);
-            
+
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutInSeconds));  //15
             Func<IWebDriver, IWebElement> waitForElement = new Func<IWebDriver, IWebElement>((IWebDriver Web) =>
             {
@@ -52,11 +52,11 @@ namespace BrightEdgeAutomationTool
                 var result = wait.Until(waitForElement);
                 return result;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return false;
             }
-            
+
         }
 
         public static IWebElement GetElementJS(this IWebDriver driver, By by)
@@ -70,7 +70,7 @@ namespace BrightEdgeAutomationTool
             driver.SwitchTo().Window(window);
 
             var test = by.ToString();
-            Char[] spearator = { ':'};
+            Char[] spearator = { ':' };
 
             IWebElement element = null;
             var method = by.ToString().Split(spearator)[0].Trim();
@@ -88,8 +88,8 @@ namespace BrightEdgeAutomationTool
                     break;
                 case "By.Name":
                     element = (IWebElement)javaScriptExecutor.ExecuteScript(
-                        "var elements = document.getElementsByName(arguments[0]);"+
-                        "if (elements.length > 0) return elements[0];" + 
+                        "var elements = document.getElementsByName(arguments[0]);" +
+                        "if (elements.length > 0) return elements[0];" +
                         "else return null;", by.ToString().Replace("By.Name: ", ""));
                     break;
                 case "By.Id":
@@ -100,7 +100,7 @@ namespace BrightEdgeAutomationTool
             }
 
 
-            
+
 
             return element;
 

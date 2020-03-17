@@ -2,11 +2,7 @@
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace BrightEdgeAutomationTool
 {
@@ -100,7 +96,7 @@ namespace BrightEdgeAutomationTool
 
             IWebElement targetElement = wait.Until(waitForElement);
 
-            if(targetElement != null)
+            if (targetElement != null)
             {
                 Click(targetElement);
 
@@ -143,7 +139,7 @@ namespace BrightEdgeAutomationTool
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             { }
         }
 
@@ -153,7 +149,7 @@ namespace BrightEdgeAutomationTool
         /// <param name="location">The country to be removed</param>
         public static void RemoveLocation(string location)
         {
-            
+
             var countryXPath = $"//div[contains(@data-testid, 'locations')]//span[contains" +
                 $"(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), " +
                 $"'{location.Trim().ToLower()}')]/following-sibling::span";
@@ -173,7 +169,8 @@ namespace BrightEdgeAutomationTool
         /// <param name="location">The country</param>
         public static bool RunProcess(string keywords, string location)
         {
-            var result = RetryUntilSuccessOrTimeout(() => {
+            var result = RetryUntilSuccessOrTimeout(() =>
+            {
                 try
                 {
                     ActionProcess(keywords, location);
@@ -207,7 +204,8 @@ namespace BrightEdgeAutomationTool
 
             CheckForLoadErrors();
 
-            RetryUntilSuccessOrTimeout(() => {
+            RetryUntilSuccessOrTimeout(() =>
+            {
                 try
                 {
                     if (Driver.ElementExist(By.XPath("//div[contains(@class, 'loader__')]")) ||
@@ -264,7 +262,7 @@ namespace BrightEdgeAutomationTool
                 Click(collapseLocation);
             }
 
-            
+
 
             // Get volume button
             var getVolume = Driver.FindElement(By.XPath("//button[contains(@data-testid, 'queryButton')]"), 15);
@@ -274,7 +272,8 @@ namespace BrightEdgeAutomationTool
 
 
             IWebElement viewResultsButton = null;
-            RetryUntilSuccessOrTimeout(() => {
+            RetryUntilSuccessOrTimeout(() =>
+            {
                 CheckForLoadErrors();
                 try
                 {
@@ -314,7 +313,8 @@ namespace BrightEdgeAutomationTool
 
         private static bool Click(IWebElement element)
         {
-            var result = RetryUntilSuccessOrTimeout(() => {
+            var result = RetryUntilSuccessOrTimeout(() =>
+            {
 
                 try
                 {
@@ -322,7 +322,7 @@ namespace BrightEdgeAutomationTool
                     //Actions hoverClick = builder.MoveToElement(element).MoveByOffset(1, 1).Click();
                     Actions hoverClick = builder.MoveToElement(element).Click();
                     hoverClick.Build().Perform();
-                    
+
                     return true;
                 }
                 catch (Exception e)
@@ -354,7 +354,7 @@ namespace BrightEdgeAutomationTool
             var scriptStr =
                 "try {" +
                 "return document.querySelectorAll('[class^=\"viewportRow\"]')[0]" +
-                ".querySelector('[class^=\"cell\"] a[href]').getAttribute(\"href\");" + 
+                ".querySelector('[class^=\"cell\"] a[href]').getAttribute(\"href\");" +
                 "} catch(e) { return null; }";
 
             IJavaScriptExecutor javaScriptExecutor = (IJavaScriptExecutor)Driver;
@@ -414,7 +414,7 @@ namespace BrightEdgeAutomationTool
 
 
             IJavaScriptExecutor javaScriptExecutor = (IJavaScriptExecutor)Driver;
-            var element = (IWebElement)javaScriptExecutor.ExecuteScript(scriptStr, keywords.Substring(0,100), location);
+            var element = (IWebElement)javaScriptExecutor.ExecuteScript(scriptStr, keywords.Substring(0, 100), location);
 
             return element;
         }

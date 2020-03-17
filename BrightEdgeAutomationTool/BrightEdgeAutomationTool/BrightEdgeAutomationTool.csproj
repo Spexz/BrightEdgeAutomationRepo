@@ -31,7 +31,7 @@
     <TargetCulture>en</TargetCulture>
     <ProductName>Bright Edge Automation Tool</ProductName>
     <PublisherName>Adrian Fraser</PublisherName>
-    <ApplicationRevision>16</ApplicationRevision>
+    <ApplicationRevision>21</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -58,7 +58,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>26C0B0D19923AA18002A798C9159CF9827D2F22D</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>1FD0D683BF5EDA4E259C9233D599A986999584B1</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestKeyFile>
@@ -184,7 +184,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Resource Include="Fonts\Font Awesome 5 Free-Solid-900.otf" />
-    <None Include="BrightEdgeAutomationTool_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace BrightEdgeAutomationTool
 {
@@ -68,11 +69,33 @@ namespace BrightEdgeAutomationTool
             var results = SetWindowPos(target_hwnd, IntPtr.Zero, x, y, width, height, 0);
             updateStatus("SetWindowPos success: " + results.ToString());
             updateStatus("SetWindowPos Error#: " + Marshal.GetLastWin32Error().ToString());
+            updateStatus("SetWindowPos Error Msg: " + new Win32Exception(Marshal.GetLastWin32Error()).Message);
 
 
             results = MoveWindow(target_hwnd, x, y, width, height, false);
             updateStatus("MoveWindow success: " + results.ToString());
             updateStatus("MoveWindow Error#: " + Marshal.GetLastWin32Error().ToString());
+            updateStatus("MoveWindow Error Msg: " + new Win32Exception(Marshal.GetLastWin32Error()).Message);
+
+
+            RECT rct;
+            var rect = new Rectangle();
+
+            if (!GetWindowRect(target_hwnd, out rct))
+            {
+
+                return;
+            }
+
+            rect.X = rct.Left;
+            rect.Y = rct.Top;
+            rect.Width = rct.Right - rct.Left + 1;
+            rect.Height = rct.Bottom - rct.Top + 1;
+
+            updateStatus($"x:{rect.X} y:{rect.Y} width:{rect.Width} height:{rect.Height}");
+
+
+
 
             Debug.WriteLine(results);
             Debug.WriteLine(Marshal.GetLastWin32Error());
@@ -80,7 +103,8 @@ namespace BrightEdgeAutomationTool
 
         public static void WaitForWindowToRespond(IntPtr hwnd, int timeoutMinutes = 5)
         {
-            LoopUntil(() => {
+            LoopUntil(() =>
+            {
                 if (IsHungAppWindow(hwnd) == false)
                     return true;
 
@@ -100,6 +124,21 @@ namespace BrightEdgeAutomationTool
                 success = task();
             }
             return success;
+        }
+
+
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;        // x position of upper-left corner
+            public int Top;         // y position of upper-left corner
+            public int Right;       // x position of lower-right corner
+            public int Bottom;      // y position of lower-right corner
         }
 
 
@@ -234,5 +273,17 @@ namespace BrightEdgeAutomationTool
 
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
         public static extern IntPtr GetParent(IntPtr hWnd);
+
+
+
+
+        /// Return Type: BOOL->int
+        ///fBlockIt: BOOL->int
+        [System.Runtime.InteropServices.DllImportAttribute("user32.dll", EntryPoint = "BlockInput")]
+        [return: System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        public static extern bool BlockInput([System.Runtime.InteropServices.MarshalAsAttribute(System.Runtime.InteropServices.UnmanagedType.Bool)] bool fBlockIt);
+
+
+
     }
 }
