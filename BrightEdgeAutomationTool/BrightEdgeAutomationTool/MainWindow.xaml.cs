@@ -26,7 +26,7 @@ namespace BrightEdgeAutomationTool
         private string DownloadsFolder;
         private List<string> FilesToDelete = new List<string>();
         //private Database database;
-        private DbCreator database;
+        public DbCreator database;
         private User user;
         public bool StopProcess { get; set; } = false;
 
@@ -52,7 +52,7 @@ namespace BrightEdgeAutomationTool
 
             // Disable start button initially 
             SetButtonState();
-
+            RegisterHotKeys();
 
         }
 
@@ -78,6 +78,13 @@ namespace BrightEdgeAutomationTool
                 start.IsEnabled = false;
                 launchChrome.IsEnabled = false;
             }
+        }
+
+        private void RegisterHotKeys()
+        {
+            RTSetup.MainWindow = this;
+            var hotkeyform = new HotKeyForm();
+            RTSetup.RunProcess();
         }
 
         private void CheckIfRankTrackerIsOpen()
@@ -642,6 +649,67 @@ meeting hotel in downtown puchong financial corporate centre";
                     rt_export_path.Text = fbd.SelectedPath;
                 }
             }
+        }
+    }
+
+
+    public partial class HotKeyForm : Form
+    {
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        enum KeyModifier
+        {
+            None = 0,
+            Alt = 1,
+            Control = 2,
+            Shift = 4,
+            WinKey = 8
+        }
+
+        public HotKeyForm()
+        {
+            //InitializeComponent();
+
+            RegisterHoteKey();
+        }
+
+        public void RegisterHoteKey()
+        {
+            int id = 0;     // The id of the hotkey. 
+            // Register Shift + A as global hotkey. 
+            RegisterHotKey(this.Handle, id, (int)KeyModifier.Shift, System.Windows.Forms.Keys.A.GetHashCode());
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+
+            if (m.Msg == 0x0312)
+            {
+                /* Note that the three lines below are not needed if you only want to register one hotkey.
+                 * The below lines are useful in case you want to register multiple keys, which you can use a switch with the id as argument, or if you want to know which key/modifier was pressed for some particular reason. */
+
+                System.Windows.Forms.Keys key = (System.Windows.Forms.Keys)(((int)m.LParam >> 16) & 0xFFFF);                  // The key of the hotkey that was pressed.
+                KeyModifier modifier = (KeyModifier)((int)m.LParam & 0xFFFF);       // The modifier of the hotkey that was pressed.
+                int id = m.WParam.ToInt32();                                        // The id of the hotkey that was pressed.
+
+                RTSetup.RunProcess();
+                //System.Windows.MessageBox.Show("Hotkey has been pressed!");
+                // do something
+            }
+        }
+
+        public void UnRegisterHotKey()
+        {
+            UnregisterHotKey(this.Handle, 0);       // Unregister hotkey with id 0 before closing the form. You might want to call this more than once with different id values if you are planning to register more than one hotkey.
+        }
+
+        private void ExampleForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            UnRegisterHotKey();
         }
     }
 }

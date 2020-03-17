@@ -2,6 +2,7 @@
 using System.Data.SQLite;
 using System.IO;
 using System.Windows;
+using System.Xml.Serialization;
 
 namespace BrightEdgeAutomationTool
 {
@@ -148,7 +149,8 @@ namespace BrightEdgeAutomationTool
             if (!checkIfExist("settings"))
             {
                 sqlCommand = "CREATE TABLE settings ( id INTEGER PRIMARY KEY AUTOINCREMENT, email VARCHAR(62), password VARCHAR(32)," +
-                    " run_bright_edge BOOL DEFAULT 1, run_rank_tracker BOOL DEFAULT 0, rt_export_path VARCHAR(260) DEFAULT '' )";
+                    " run_bright_edge BOOL DEFAULT 1, run_rank_tracker BOOL DEFAULT 0, rt_export_path VARCHAR(260) DEFAULT ''," +
+                    " rt_setup TEXT DEFAULT '' )";
                 executeQuery(sqlCommand);
                 executeQuery("INSERT INTO settings (email, password) VALUES ('john.connolly@galileotechmedia.com', '')");
             }
@@ -224,6 +226,50 @@ namespace BrightEdgeAutomationTool
             return null;
         }
 
+        public RTSettings GetRTSettings()
+        {
+            string statement = "SELECT rt_setup FROM settings LIMIT 1";
+
+            var cmd = new SQLiteCommand(statement, dbConnection);
+            SQLiteDataReader rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+            {
+                var rtSettingsSerialized = rdr.GetString(0);
+                if (rtSettingsSerialized == "")
+                    return null;
+
+                var rtSettings = rtSettingsSerialized.XmlDeserializeFromString<RTSettings>();
+                return rtSettings;
+            }
+
+            return null;
+        }
+
+
+        public RTSettings UpdateRTSettings(RTSettings rtSetup)
+        {
+            var rtSetupSerialized = rtSetup.XmlSerializeToString();
+
+            try
+            {
+
+                string query = $"UPDATE settings SET rt_setup = '{ rtSetupSerialized }' WHERE Id IS NOT NULL";
+                var result = executeQuery(query);
+                if (result > 0)
+                    return rtSetup;
+                else
+                    return null;
+            }
+            catch (Exception e)
+            {
+            }
+
+            return null;
+        }
+
+
+
         public bool Close()
         {
             try
@@ -245,6 +291,43 @@ namespace BrightEdgeAutomationTool
                 sqlCommand = "insert into MY_TABLE (code_test_type) values (999)";
                 executeQuery(sqlCommand);
             }
+        }
+
+
+        
+    }
+
+    public static class SerializeExtensions
+    {
+        public static string XmlSerializeToString(this object objectInstance)
+        {
+            var serializer = new XmlSerializer(objectInstance.GetType());
+            var sb = new System.Text.StringBuilder();
+
+            using (TextWriter writer = new StringWriter(sb))
+            {
+                serializer.Serialize(writer, objectInstance);
+            }
+
+            return sb.ToString();
+        }
+
+        public static T XmlDeserializeFromString<T>(this string objectData)
+        {
+            return (T)XmlDeserializeFromString(objectData, typeof(T));
+        }
+
+        public static object XmlDeserializeFromString(this string objectData, Type type)
+        {
+            var serializer = new XmlSerializer(type);
+            object result;
+
+            using (TextReader reader = new StringReader(objectData))
+            {
+                result = serializer.Deserialize(reader);
+            }
+
+            return result;
         }
     }
 

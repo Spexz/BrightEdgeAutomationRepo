@@ -146,6 +146,7 @@
     <Compile Include="PowerHelper.cs" />
     <Compile Include="PuppetMaster.cs" />
     <Compile Include="RankTrackerPuppetMaster.cs" />
+    <Compile Include="RTSetup.cs" />
     <Compile Include="SpreadsheetHelper.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

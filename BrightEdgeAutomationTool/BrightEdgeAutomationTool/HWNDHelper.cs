@@ -101,6 +101,25 @@ namespace BrightEdgeAutomationTool
             Debug.WriteLine(Marshal.GetLastWin32Error());
         }
 
+        public static Rectangle GetRankTrackerRect()
+        {
+            var rtHwnd = GetRankTrackerWindow();
+            RECT rct;
+            var rect = new Rectangle();
+
+            if (!GetWindowRect(rtHwnd, out rct))
+            {
+                return new Rectangle();
+            }
+
+            rect.X = rct.Left;
+            rect.Y = rct.Top;
+            rect.Width = rct.Right - rct.Left + 1;
+            rect.Height = rct.Bottom - rct.Top + 1;
+
+            return rect;
+        }
+
         public static void WaitForWindowToRespond(IntPtr hwnd, int timeoutMinutes = 5)
         {
             LoopUntil(() =>
