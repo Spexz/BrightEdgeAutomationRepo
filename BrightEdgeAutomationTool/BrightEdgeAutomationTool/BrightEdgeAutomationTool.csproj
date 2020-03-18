@@ -31,7 +31,7 @@
     <TargetCulture>en</TargetCulture>
     <ProductName>Bright Edge Automation Tool</ProductName>
     <PublisherName>Adrian Fraser</PublisherName>
-    <ApplicationRevision>23</ApplicationRevision>
+    <ApplicationRevision>24</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -58,7 +58,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>1FD0D683BF5EDA4E259C9233D599A986999584B1</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>26C0B0D19923AA18002A798C9159CF9827D2F22D</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestKeyFile>

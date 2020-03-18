@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BrightEdgeAutomationTool"
         mc:Ignorable="d"
-        Title="BrightEdge Tool" Height="650" MinHeight="600"
+        Title="BrightEdge Tool" Height="700" MinHeight="600"
         Width="550" MaxWidth="555" MinWidth="555"
         Closed="Window_Closed" 
         WindowStartupLocation="CenterScreen" Icon="images/automation-64.ico">
@@ -460,7 +460,7 @@
                     </Button>
 
                     <StackPanel x:Name="success" Visibility="Collapsed"
-                                Orientation="Horizontal" Grid.Row="6" 
+                                Orientation="Horizontal" Grid.Row="7" 
                                 VerticalAlignment="Top"
                                 Height="50" HorizontalAlignment="Center">
                         <TextBlock FontSize="30" FontWeight="Bold" 

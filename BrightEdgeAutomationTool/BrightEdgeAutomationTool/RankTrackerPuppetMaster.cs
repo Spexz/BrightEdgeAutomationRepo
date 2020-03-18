@@ -285,7 +285,7 @@ namespace BrightEdgeAutomationTool
 
 
                 return false;
-            }, TimeSpan.FromMinutes(20));
+            }, TimeSpan.FromMinutes(2));
 
 
 
@@ -397,7 +397,7 @@ namespace BrightEdgeAutomationTool
 
         public static void SaveCsv(string filename)
         {
-            HWNDHelper.FindAndBringFwd("Save");
+            //HWNDHelper.FindAndBringFwd("Save");
             AltN(); Thread.Sleep(1000);
             WaitForCursor();
             CtrlA(); Thread.Sleep(1000);
@@ -445,7 +445,7 @@ namespace BrightEdgeAutomationTool
 
         public static void AltY()
         {
-            // Hold ALT down and press N
+            // Hold ALT down and press Y
             keybd_event(VK_MENU, 0, KEYEVENTF_KEYDOWN, 0);
             Thread.Sleep(100);
             keybd_event(Y, 0, KEYEVENTF_KEYDOWN, 0);
@@ -529,7 +529,7 @@ namespace BrightEdgeAutomationTool
                     return true;
 
                 return false;
-            }, TimeSpan.FromMinutes(1));
+            }, TimeSpan.FromMinutes(5));
         }
 
         private static bool IsWaitCursor()
