@@ -56,6 +56,7 @@ namespace BrightEdgeAutomationTool
         {
             ShowWindowAsync(new HandleRef(null, target_hwnd), SW_RESTORE);
             SetForegroundWindow(target_hwnd);
+            Thread.Sleep(1000);
         }
 
         public static void SetRankTrackerSizeAndPosition(IntPtr target_hwnd, Func<string, bool> updateStatus, RTSettings rtSettings)

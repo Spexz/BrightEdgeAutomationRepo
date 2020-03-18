@@ -36,7 +36,25 @@ namespace BrightEdgeAutomationTool
             ProgressbarCoords,
             DownloadCoords,
             TableTopCoords,
+            StopTaskCoords,
+            StopTaskApplyCoords,
             Finalizer
+        };
+
+        private static List<string> Instructions = new List<string>()
+        {
+            "",
+            $"Hit {HOTKEYS} to save Rank Tracker dimensions and position",
+            $"Hit {HOTKEYS} to set the 'Add Keywords' button position",
+            $"Hit {HOTKEYS} to set the Keyword input area position",
+            $"Hit {HOTKEYS} to set the 'Next' button position",
+            $"Hit {HOTKEYS} to set the 'Finish' button position",
+            $"Hit {HOTKEYS} to set the 'progressbar' position",
+            $"Hit {HOTKEYS} to set the 'Download' button position",
+            $"Hit {HOTKEYS} to set the point of the top of the keyword list table",
+            $"Hit {HOTKEYS} to set the Stop Task Button position",
+            $"Hit {HOTKEYS} to set the Stop Task Apply Button position",
+            $"Hit {HOTKEYS} to save settings"
         };
 
         public static void RunProcess(RTProcess rtp)
@@ -54,14 +72,21 @@ namespace BrightEdgeAutomationTool
             }
         }
 
+        private static void DisplayNextInstructions()
+        {
+            MainWindow.UpdateStatus(Instructions[Index]);
+        }
+
         private static void Initialize()
         {
             rtSettings = new RTSettings();
             MainWindow.UpdateStatus($"Starting the Update Rank Tracker Process");
             MainWindow.UpdateStatus($"Hit {HOTKEY_CANCEL} to cancel");
             MainWindow.UpdateStatus($"--------------------------------------------");
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to save Rank Tracker dimensions and position");
+            
             Index += 1;
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to save Rank Tracker dimensions and position");
+            DisplayNextInstructions();
         }
 
         private static void AddRTDimensions()
@@ -71,7 +96,8 @@ namespace BrightEdgeAutomationTool
             rtSettings.RankTrackerRect = rect;
             Index += 1;
 
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Add Keywords' button position");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Add Keywords' button position");
+            DisplayNextInstructions();
         }
 
         private static void AddKeywordsCoords()
@@ -81,7 +107,8 @@ namespace BrightEdgeAutomationTool
             rtSettings.AddKeywordPos = cPosition;
             Index += 1;
 
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the Keyword input area position");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the Keyword input area position");
+            DisplayNextInstructions();
         }
 
         private static void AddKeywordsInputCoords()
@@ -91,7 +118,8 @@ namespace BrightEdgeAutomationTool
             rtSettings.KeywordInputPos = cPosition;
             Index += 1;
 
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Next' button position");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Next' button position");
+            DisplayNextInstructions();
         }
 
         private static void NextButtonCoords()
@@ -101,7 +129,8 @@ namespace BrightEdgeAutomationTool
             rtSettings.NextPos = cPosition;
             Index += 1;
 
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Finish' button position");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Finish' button position");
+            DisplayNextInstructions();
         }
 
         private static void FinishButtonCoords()
@@ -111,7 +140,8 @@ namespace BrightEdgeAutomationTool
             rtSettings.FinishPos = cPosition;
             Index += 1;
 
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'progressbar' position");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'progressbar' position");
+            DisplayNextInstructions();
         }
 
         private static void ProgressbarCoords()
@@ -136,7 +166,8 @@ namespace BrightEdgeAutomationTool
             rtSettings.ProgressbarPos = cPosition;
             Index += 1;
 
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Download' button position");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the 'Download' button position");
+            DisplayNextInstructions();
         }
 
         private static void DownloadCoords()
@@ -147,7 +178,8 @@ namespace BrightEdgeAutomationTool
 
             Index += 1;
 
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the point of the top of the keyword list table");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to set the point of the top of the keyword list table");
+            DisplayNextInstructions();
         }
 
 
@@ -157,8 +189,30 @@ namespace BrightEdgeAutomationTool
             MainWindow.UpdateStatus($"Keyword table: X: {cPosition.X} Y: {cPosition.Y}");
             rtSettings.KeywordTblPos = cPosition;
             Index += 1;
-            MainWindow.UpdateStatus($"Hit {HOTKEYS} to save settings");
+            //MainWindow.UpdateStatus($"Hit {HOTKEYS} to save settings");
+            DisplayNextInstructions();
         }
+
+        private static void StopTaskCoords()
+        {
+            var cPosition = Cursor.Position;
+            MainWindow.UpdateStatus($"Stop Task Button: X: {cPosition.X} Y: {cPosition.Y}");
+            rtSettings.TaskStopPos = cPosition;
+            Index += 1;
+
+            DisplayNextInstructions();
+        }
+
+        private static void StopTaskApplyCoords()
+        {
+            var cPosition = Cursor.Position;
+            MainWindow.UpdateStatus($"Stop Task Apply Button: X: {cPosition.X} Y: {cPosition.Y}");
+            rtSettings.TaskStopApplyPos = cPosition;
+            Index += 1;
+
+            DisplayNextInstructions();
+        }
+
 
         private static void Finalizer()
         {
@@ -167,8 +221,8 @@ namespace BrightEdgeAutomationTool
             MainWindow.UpdateStatus($"Process complete");
             HotKeyForm.UnRegisterHotKey();
 
-            var sets = MainWindow.database.GetRTSettings();
-            Console.WriteLine($"Rank Tracker: X:{sets.RankTrackerRect.X} Y:{sets.RankTrackerRect.Y} Width:{sets.RankTrackerRect.Width} Height:{sets.RankTrackerRect.Height}");
+            //var sets = MainWindow.database.GetRTSettings();
+            //Console.WriteLine($"Rank Tracker: X:{sets.RankTrackerRect.X} Y:{sets.RankTrackerRect.Y} Width:{sets.RankTrackerRect.Width} Height:{sets.RankTrackerRect.Height}");
         }
 
 
@@ -192,5 +246,7 @@ namespace BrightEdgeAutomationTool
         public Point DownloadPos { get; set; }
         public Point CloseUpgradePos { get; set; }
         public Point KeywordTblPos { get; set; }
+        public Point TaskStopPos { get; set; }
+        public Point TaskStopApplyPos { get; set; }
     }
 }

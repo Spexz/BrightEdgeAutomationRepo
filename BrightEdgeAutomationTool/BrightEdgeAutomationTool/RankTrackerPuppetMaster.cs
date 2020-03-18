@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
@@ -17,6 +18,7 @@ namespace BrightEdgeAutomationTool
         private static User settings;
         public static MainWindow MainWindow;
         private static RTSettings rtSettings;
+        private static IntPtr rankTrackerHandle;
         public static void StartProcess(DirectoryInfo directory, User user)
         {
             rtSettings = MainWindow.database.GetRTSettings();
@@ -27,7 +29,7 @@ namespace BrightEdgeAutomationTool
                 return;
             }
 
-            var rankTrackerHandle = HWNDHelper.GetRankTrackerWindow();
+            rankTrackerHandle = HWNDHelper.GetRankTrackerWindow();
             if (rankTrackerHandle == IntPtr.Zero)
             {
                 System.Windows.MessageBox.Show("Could not find Rank Tracker Window");
@@ -125,7 +127,7 @@ namespace BrightEdgeAutomationTool
 
 
                             // Process the Rank Tracker csv // to be removed
-                            //rankTrackerCsvFile = @"C:\Users\adria\OneDrive\Desktop\Test RT\Rank Tracker Results Example.csv";
+                            rankTrackerCsvFile = @"C:\Users\adria\OneDrive\Desktop\Test RT\keywords_rankings_63720093695417.csv"; // to be removed
 
                             List<KeywordResultValue> RankTrackerKeywords = File.ReadAllLines(rankTrackerCsvFile)
                                 .Skip(1).Select(v => KeywordResultValue.FromRankTrackerCsv(v))
@@ -137,8 +139,16 @@ namespace BrightEdgeAutomationTool
                             distinctResultSheetData.ToList().ForEach(k =>
                             {
                                 //var item = RankTrackerKeywords.SingleOrDefault(l => l.Keyword.Equals(k.Keyword));
+                                //s = Regex.Replace(s, @"[^\u0000-\u007F]+", string.Empty); // Full range of ASCII characters
                                 var item = RankTrackerKeywords.SingleOrDefault(l =>
-                                String.Compare(l.Keyword, k.Keyword, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols) == 0);
+                                {
+                                    var rtKeyword = Regex.Replace(l.Keyword.Trim(), @"[^\u0020-\u007E]+", string.Empty); // Printable characters
+                                    var resultKeyword = Regex.Replace(k.Keyword.Trim(), @"[^\u0020-\u007E]+", string.Empty); // Printable characters
+
+                                    return String.Compare(rtKeyword, resultKeyword, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase) == 0;
+                                });
+
+                                //String.Compare(l.Keyword, k.Keyword, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols) == 0
                                 //String.Compare(s1, s2, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols) == 0
                                 if (item != null)
                                 {
@@ -179,6 +189,7 @@ namespace BrightEdgeAutomationTool
 
         public static string RunRankTrackerProcess(string keywordListStr)
         {
+            //DeleteKeywords();
             //return ""; // to be removed
             
             var rtHwnd = HWNDHelper.GetRankTrackerWindow();
@@ -196,9 +207,11 @@ namespace BrightEdgeAutomationTool
             WaitForCursor();
             //HWNDHelper.FindAndBringFwd("Add New Keywords");
 
+            HWNDHelper.BringWindowToFront(rankTrackerHandle);
+
             // Click in the keyword input area
             //LeftMouseClick(590, 337);
-            //LeftMouseClick(rtSettings, 337);
+            LeftMouseClick(rtSettings.KeywordInputPos.X, rtSettings.KeywordInputPos.Y);
             Thread.Sleep(2000);
             WaitForCursor();
 
@@ -231,10 +244,7 @@ namespace BrightEdgeAutomationTool
 
             var result = LoopUntil(() =>
             {
-                //var c = HexConverter(GetColorAt(134, 656));
-                /*var c = HexConverter(GetColorAt(rtSettings.ProgressbarPos.X, rtSettings.ProgressbarPos.Y));
-                if (!c.Equals(pGreenColor) && !c.Equals(pDarkColor) && !c.Equals(pGreenColor2))
-                    return true;*/
+                HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
                 if (!IsColorAlongYAxis(rtSettings.ProgressbarPos, colors, 5))
                     return true;
@@ -247,7 +257,7 @@ namespace BrightEdgeAutomationTool
             // Click Download button
             //LeftMouseClick(1310, 137);
             LeftMouseClick(rtSettings.DownloadPos.X, rtSettings.DownloadPos.Y);
-            Thread.Sleep(2000);
+            Thread.Sleep(3000);
             WaitForCursor();
 
 #if DEBUG
@@ -261,7 +271,7 @@ namespace BrightEdgeAutomationTool
             Thread.Sleep(1000);
             WaitForCursor();
 #endif
-
+            HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
             // Save csv file
             //Keywords & rankings - test.csv
@@ -287,6 +297,7 @@ namespace BrightEdgeAutomationTool
                 return false;
             }, TimeSpan.FromMinutes(2));
 
+            Console.WriteLine(exportedFileName);
 
 
             // Click in the keywords table and Delete keywords
@@ -328,6 +339,61 @@ namespace BrightEdgeAutomationTool
             }
 
             return false;
+        }
+
+        private static void DeleteTasks()
+        {
+            string pGreenColor = "#67B847"; // Progressbar green color
+            string pGreenColor2 = "#61A032"; // Progressbar green color
+            string pDarkColor = "#1F2530"; // Progressbar dark color
+            string taskStop = "#5E5E5E";   // light gray
+            string taskStop2 = "#C0C0C0";   // Dark gray
+
+            List<string> progressColors = new List<string>()
+            {
+                pGreenColor, pGreenColor2, pDarkColor
+            };
+
+            List<string> buttonColors = new List<string>()
+            {
+                pGreenColor, pGreenColor2
+            };
+
+            List<string> taskButtonColors = new List<string>()
+            {
+                taskStop, taskStop2
+            };
+
+
+            if (!IsColorAlongYAxis(rtSettings.ProgressbarPos, progressColors, 5))
+                return;
+
+
+            LeftMouseClick(rtSettings.ProgressbarPos.X, rtSettings.ProgressbarPos.Y);
+            Thread.Sleep(2000);
+
+            var result = LoopUntil(() =>
+            {
+                if (IsColorAlongYAxis(rtSettings.TaskStopPos, taskButtonColors, 5))
+                {
+                    // click the stop button
+                    LeftMouseClick(rtSettings.TaskStopPos.X, rtSettings.TaskStopPos.Y);
+                    Thread.Sleep(2000);
+
+                    // click the apply button
+                    LeftMouseClick(rtSettings.TaskStopApplyPos.X, rtSettings.TaskStopApplyPos.Y);
+                    Thread.Sleep(1000);
+
+                    return false;
+                }
+
+                return true;
+
+            }, TimeSpan.FromMinutes(5));
+
+            // Press escape to close the task popup
+            PressEscape();
+            Thread.Sleep(1000);
         }
 
 
@@ -426,7 +492,9 @@ namespace BrightEdgeAutomationTool
             //WaitForCursor();
             //HWNDHelper.FindAndBringFwd("Removal confirmation");
 
-            AltY(); Thread.Sleep(1000);
+            AltY(); Thread.Sleep(3000);
+
+            DeleteTasks();
         }
 
         public static void AltN()
@@ -475,21 +543,21 @@ namespace BrightEdgeAutomationTool
         public static void PressEnter()
         {
             keybd_event(VK_RETURN, 0, KEYEVENTF_KEYDOWN, 0);
-            Thread.Sleep(100);
+            Thread.Sleep(200);
             keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0);
         }
 
         public static void PressDelete()
         {
             keybd_event(VK_DELETE, 0, KEYEVENTF_KEYDOWN, 0);
-            Thread.Sleep(100);
+            Thread.Sleep(200);
             keybd_event(VK_DELETE, 0, KEYEVENTF_KEYUP, 0);
         }
 
         public static void PressEscape()
         {
             keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYDOWN, 0);
-            Thread.Sleep(100);
+            Thread.Sleep(200);
             keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYUP, 0);
         }
 
@@ -539,7 +607,7 @@ namespace BrightEdgeAutomationTool
             CURSORINFO pci;
             pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
             GetCursorInfo(out pci);
-            //Console.WriteLine(pci.hCursor.ToString());
+            //Console.WriteLine($"{h.ToString()} : {pci.hCursor.ToString()}");
             //Console.WriteLine(pci.hCursor == h);
             return pci.hCursor == h;
         }
