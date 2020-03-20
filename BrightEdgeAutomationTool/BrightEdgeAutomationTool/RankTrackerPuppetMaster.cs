@@ -51,6 +51,12 @@ namespace BrightEdgeAutomationTool
 
             foreach (FileInfo file in files)
             {
+                if (MainWindow.StopProcess)
+                {
+                    break;
+                }
+                    
+
 
                 MainWindow.UpdateStatus($"{DateTime.Now} | Processing file {file.Name}");
 
@@ -61,7 +67,7 @@ namespace BrightEdgeAutomationTool
                 }
                 catch (Exception e)
                 {
-                    //UpdateStatus($"{DateTime.Now} | Error reading file: {f.FullName}");
+                    MainWindow.UpdateStatus($"{DateTime.Now} | Error reading file: {file.FullName}");
                     continue;
                 }
 
@@ -95,6 +101,12 @@ namespace BrightEdgeAutomationTool
                             var result = LoopUntil(() =>
                             {
 
+                                if (MainWindow.StopProcess)
+                                {
+                                    DeleteKeywords();
+                                    return true;
+                                }
+
                                 HWNDHelper.BringWindowToFront(rankTrackerHandle);
                                 Thread.Sleep(1000);
                                 HWNDHelper.SetRankTrackerSizeAndPosition(rankTrackerHandle, (msg) =>
@@ -124,10 +136,15 @@ namespace BrightEdgeAutomationTool
 
                             //return; // to be removed
 
+                            if (MainWindow.StopProcess)
+                            {
+                                break;
+                            }
+
 
 
                             // Process the Rank Tracker csv // to be removed
-                            rankTrackerCsvFile = @"C:\Users\adria\OneDrive\Desktop\Test RT\keywords_rankings_63720093695417.csv"; // to be removed
+                            //rankTrackerCsvFile = @"C:\Users\Glacia\Desktop\Tests\RT - Test\Rank Tracker Results Example.csv"; // to be removed
 
                             List<KeywordResultValue> RankTrackerKeywords = File.ReadAllLines(rankTrackerCsvFile)
                                 .Skip(1).Select(v => KeywordResultValue.FromRankTrackerCsv(v))
@@ -174,15 +191,23 @@ namespace BrightEdgeAutomationTool
 
                             spreadsheetDocument.WorkbookPart.Workbook.Save();
 
-                            /*if (File.Exists(rankTrackerCsvFile))
+                            if (File.Exists(rankTrackerCsvFile))
                             {
                                 File.Delete(rankTrackerCsvFile);
-                            }*/
+                            }
                         }
                     }
 
+
+
                     // Save
                     File.WriteAllBytes(file.FullName, stream.ToArray());
+                }
+
+                if (MainWindow.StopProcess)
+                {
+                    DeleteKeywords();
+                    return;
                 }
             }
         }
@@ -244,6 +269,12 @@ namespace BrightEdgeAutomationTool
 
             var result = LoopUntil(() =>
             {
+                if (MainWindow.StopProcess)
+                {
+                    return true;
+                }
+
+
                 HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
                 if (!IsColorAlongYAxis(rtSettings.ProgressbarPos, colors, 5))
@@ -251,6 +282,11 @@ namespace BrightEdgeAutomationTool
 
                 return false;
             }, TimeSpan.FromSeconds(60 * 1000 * 5)); // should be way longer in release
+
+            if (MainWindow.StopProcess)
+            {
+                return "";
+            }
 
             Thread.Sleep(2000); // should be longer in release
 
@@ -285,6 +321,11 @@ namespace BrightEdgeAutomationTool
             // Get csv file
             var csvResult = LoopUntil(() =>
             {
+                if (MainWindow.StopProcess)
+                {
+                    return true;
+                }
+
                 var downloadedFiles = Directory.GetFiles(settings.RTExportPath)
                                         .Where(x => x.EndsWith(csvFileName));
                 if (downloadedFiles.Count() > 0)
@@ -296,6 +337,11 @@ namespace BrightEdgeAutomationTool
 
                 return false;
             }, TimeSpan.FromMinutes(2));
+
+            if (MainWindow.StopProcess)
+            {
+                return "";
+            }
 
             Console.WriteLine(exportedFileName);
 
@@ -457,12 +503,33 @@ namespace BrightEdgeAutomationTool
             // Hold Control down and press V
             keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
             keybd_event(V, 0, KEYEVENTF_KEYDOWN, 0);
+
             keybd_event(V, 0, KEYEVENTF_KEYUP, 0);
             keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP, 0);
         }
 
         public static void SaveCsv(string filename)
         {
+
+            /*//HWNDHelper.FindAndBringFwd("Save");
+            HWNDHelper.BringWindowToFront(rankTrackerHandle);
+            WaitForCursor();
+            Thread.Sleep(1000);
+
+            //AltN(); Thread.Sleep(1000);
+            //WaitForCursor();
+            //CtrlA(); Thread.Sleep(1000);
+            //WaitForCursor();
+
+            System.Windows.Clipboard.SetText(filename);
+            Thread.Sleep(500);
+            PressPaste(); Thread.Sleep(1000);
+            WaitForCursor();
+            PressEnter(); Thread.Sleep(3000);
+            WaitForCursor();
+            // Do not open folder
+            AltN(); Thread.Sleep(1000);*/
+
             //HWNDHelper.FindAndBringFwd("Save");
             AltN(); Thread.Sleep(1000);
             WaitForCursor();
@@ -480,9 +547,10 @@ namespace BrightEdgeAutomationTool
 
         public static void DeleteKeywords()
         {
+            //HWNDHelper.BringWindowToFront(rankTrackerHandle); Thread.Sleep(1000);
             // Click in the keyword table
             //LeftMouseClick(718, 213); Thread.Sleep(1000);
-            LeftMouseClick(rtSettings.KeywordInputPos.X, rtSettings.KeywordInputPos.Y);
+            LeftMouseClick(rtSettings.KeywordTblPos.X, rtSettings.KeywordTblPos.Y);
             //WaitForCursor();
 
             CtrlA(); Thread.Sleep(2000);
@@ -492,7 +560,8 @@ namespace BrightEdgeAutomationTool
             //WaitForCursor();
             //HWNDHelper.FindAndBringFwd("Removal confirmation");
 
-            AltY(); Thread.Sleep(3000);
+            //AltY(); Thread.Sleep(3000);
+            PressEnter(); Thread.Sleep(3000);
 
             DeleteTasks();
         }
