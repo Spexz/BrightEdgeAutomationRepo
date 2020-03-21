@@ -232,7 +232,7 @@ namespace BrightEdgeAutomationTool
             WaitForCursor();
             //HWNDHelper.FindAndBringFwd("Add New Keywords");
 
-            HWNDHelper.BringWindowToFront(rankTrackerHandle);
+            //HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
             // Click in the keyword input area
             //LeftMouseClick(590, 337);
@@ -275,7 +275,7 @@ namespace BrightEdgeAutomationTool
                 }
 
 
-                HWNDHelper.BringWindowToFront(rankTrackerHandle);
+                //HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
                 if (!IsColorAlongYAxis(rtSettings.ProgressbarPos, colors, 5))
                     return true;
@@ -307,12 +307,13 @@ namespace BrightEdgeAutomationTool
             Thread.Sleep(1000);
             WaitForCursor();
 #endif
-            HWNDHelper.BringWindowToFront(rankTrackerHandle);
+            //HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
             // Save csv file
             //Keywords & rankings - test.csv
             var csvFileName = $"keywords_rankings_{DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond}.csv";
             SaveCsv(csvFileName);
+
             Thread.Sleep(1000);
             WaitForCursor();
 
@@ -510,6 +511,24 @@ namespace BrightEdgeAutomationTool
 
         public static void SaveCsv(string filename)
         {
+            HWNDHelper.FindAndBringFwd("Save");
+            AltN();
+            Thread.Sleep(1000);
+            WaitForCursor();
+            CtrlA();
+            Thread.Sleep(1000);
+            WaitForCursor();
+
+            System.Windows.Clipboard.SetText(filename);
+            PressPaste();
+            Thread.Sleep(1000);
+            WaitForCursor();
+            PressEnter();
+            Thread.Sleep(3000);
+            WaitForCursor();
+            // Do not open folder
+            AltN();
+            Thread.Sleep(1000);
 
             /*//HWNDHelper.FindAndBringFwd("Save");
             HWNDHelper.BringWindowToFront(rankTrackerHandle);
@@ -530,19 +549,7 @@ namespace BrightEdgeAutomationTool
             // Do not open folder
             AltN(); Thread.Sleep(1000);*/
 
-            //HWNDHelper.FindAndBringFwd("Save");
-            AltN(); Thread.Sleep(1000);
-            WaitForCursor();
-            CtrlA(); Thread.Sleep(1000);
-            WaitForCursor();
 
-            System.Windows.Clipboard.SetText(filename);
-            PressPaste(); Thread.Sleep(1000);
-            WaitForCursor();
-            PressEnter(); Thread.Sleep(3000);
-            WaitForCursor();
-            // Do not open folder
-            AltN(); Thread.Sleep(1000);
         }
 
         public static void DeleteKeywords()
@@ -570,13 +577,11 @@ namespace BrightEdgeAutomationTool
         {
             // Hold ALT down and press N
             keybd_event(VK_MENU, 0, KEYEVENTF_KEYDOWN, 0);
-            Thread.Sleep(100);
             keybd_event(N, 0, KEYEVENTF_KEYDOWN, 0);
 
             Thread.Sleep(300);
 
             keybd_event(N, 0, KEYEVENTF_KEYUP, 0);
-            Thread.Sleep(100);
             keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
         }
 
@@ -584,13 +589,11 @@ namespace BrightEdgeAutomationTool
         {
             // Hold ALT down and press Y
             keybd_event(VK_MENU, 0, KEYEVENTF_KEYDOWN, 0);
-            Thread.Sleep(100);
             keybd_event(Y, 0, KEYEVENTF_KEYDOWN, 0);
 
             Thread.Sleep(300);
 
             keybd_event(Y, 0, KEYEVENTF_KEYUP, 0);
-            Thread.Sleep(100);
             keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
         }
 
@@ -598,13 +601,11 @@ namespace BrightEdgeAutomationTool
         {
             // Hold Ctrl down and press A
             keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
-            Thread.Sleep(100);
             keybd_event(A, 0, KEYEVENTF_KEYDOWN, 0);
 
             Thread.Sleep(300);
 
             keybd_event(A, 0, KEYEVENTF_KEYUP, 0);
-            Thread.Sleep(100);
             keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP, 0);
         }
 

@@ -36,7 +36,7 @@ namespace BrightEdgeAutomationTool
         {
             InitializeComponent();
 
-            RunAsAdmin(); // Can be removed for debugging
+            //RunAsAdmin(); // Can be removed for debugging
 
             SHGetKnownFolderPath(KnownFolder.Downloads, 0, IntPtr.Zero, out DownloadsFolder);
 
