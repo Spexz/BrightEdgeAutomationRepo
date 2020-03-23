@@ -300,7 +300,7 @@ namespace BrightEdgeAutomationTool
             //Keywords & rankings - test.csv
             var csvFileName = $"keywords_rankings_{DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond}.csv";
 
-            SaveCsv(csvFileName);
+            SaveCsv2(csvFileName);
 
             Thread.Sleep(1000);
             WaitForCursor();
@@ -656,7 +656,7 @@ namespace BrightEdgeAutomationTool
             Thread.Sleep(100);
             keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);*/
 
-            SendKeys.SendWait("%{y}"); // ALT+n
+            SendKeys.SendWait("%{y}"); // ALT+y
         }
 
         public static void CtrlA()
