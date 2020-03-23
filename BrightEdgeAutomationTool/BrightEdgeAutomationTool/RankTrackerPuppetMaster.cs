@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -90,10 +91,6 @@ namespace BrightEdgeAutomationTool
 
                             var distinctResultSheetData = resultSheetData.Distinct(new DistinctKeywordResultComparer());
 
-                            /*foreach (var res in distinctResultSheetData)
-                            {
-                                Console.WriteLine($"{res.Keyword} - {res.Volume}");
-                            }*/
 
                             var keywordListStr = distinctResultSheetData.Select(x => x.Keyword).Aggregate((x, y) => x + "\n" + y);
                             string rankTrackerCsvFile = null;
@@ -144,7 +141,7 @@ namespace BrightEdgeAutomationTool
 
 
                             // Process the Rank Tracker csv // to be removed
-                            //rankTrackerCsvFile = @"C:\Users\Glacia\Desktop\Tests\RT - Test\Rank Tracker Results Example.csv"; // to be removed
+                            //rankTrackerCsvFile = @"C:\Users\Glacia\Desktop\Tests\RT - Test\keywords_rankings_63720393017669.csv"; // to be removed
 
                             List<KeywordResultValue> RankTrackerKeywords = File.ReadAllLines(rankTrackerCsvFile)
                                 .Skip(1).Select(v => KeywordResultValue.FromRankTrackerCsv(v))
@@ -180,12 +177,7 @@ namespace BrightEdgeAutomationTool
 
                             MainWindow.UpdateStatus($"{DateTime.Now} | Rank Tracker: Pulled {finalResultSheetData.Count()} Keywords from {file.Name}");
 
-                            // Write final result sheet data to the results sheet
-
-                            /*foreach (var res in finalResultSheetData)
-                            {
-                                Console.WriteLine($"{res.Keyword} - {res.Volume} - {res.GoogleRank} - {res.RankingPage}");
-                            }*/
+                            
 
                             SpreadsheetHelper.RTUpdateResultSheet(workbookPart, finalResultSheetData);
 
@@ -214,7 +206,6 @@ namespace BrightEdgeAutomationTool
 
         public static string RunRankTrackerProcess(string keywordListStr)
         {
-            //DeleteKeywords();
             //return ""; // to be removed
             
             var rtHwnd = HWNDHelper.GetRankTrackerWindow();
@@ -226,7 +217,6 @@ namespace BrightEdgeAutomationTool
             WaitForCursor();
 
             // Click the add keyword button
-            //LeftMouseClick(565, 137);
             LeftMouseClick(rtSettings.AddKeywordPos.X, rtSettings.AddKeywordPos.Y);
             Thread.Sleep(2000);
             WaitForCursor();
@@ -235,7 +225,6 @@ namespace BrightEdgeAutomationTool
             HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
             // Click in the keyword input area
-            //LeftMouseClick(590, 337);
             LeftMouseClick(rtSettings.KeywordInputPos.X, rtSettings.KeywordInputPos.Y);
             Thread.Sleep(2000);
             WaitForCursor();
@@ -246,14 +235,12 @@ namespace BrightEdgeAutomationTool
             WaitForCursor();
 
             // Click Next
-            //LeftMouseClick(811, 575);
             LeftMouseClick(rtSettings.NextPos.X, rtSettings.NextPos.Y);
             Thread.Sleep(2000);
             WaitForCursor();
 
 
             // Click Finish
-            //LeftMouseClick(919, 575);
             LeftMouseClick(rtSettings.FinishPos.X, rtSettings.FinishPos.Y);
             Thread.Sleep(2000);
             WaitForCursor();
@@ -296,7 +283,7 @@ namespace BrightEdgeAutomationTool
             Thread.Sleep(3000);
             WaitForCursor();
 
-#if DEBUG
+/*#if DEBUG
             //For trial version only
             //LeftMouseClick(981, 128);
             PressEscape();
@@ -306,13 +293,15 @@ namespace BrightEdgeAutomationTool
             PressEnter();
             Thread.Sleep(1000);
             WaitForCursor();
-#endif
-            HWNDHelper.BringWindowToFront(rankTrackerHandle);
+#endif*/
+            //HWNDHelper.BringWindowToFront(rankTrackerHandle);
 
             // Save csv file
             //Keywords & rankings - test.csv
             var csvFileName = $"keywords_rankings_{DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond}.csv";
+
             SaveCsv(csvFileName);
+
             Thread.Sleep(1000);
             WaitForCursor();
 
@@ -343,7 +332,7 @@ namespace BrightEdgeAutomationTool
                 return "";
             }
 
-            Console.WriteLine(exportedFileName);
+            //Console.WriteLine(exportedFileName);
 
 
             // Click in the keywords table and Delete keywords
@@ -425,10 +414,12 @@ namespace BrightEdgeAutomationTool
                     // click the stop button
                     LeftMouseClick(rtSettings.TaskStopPos.X, rtSettings.TaskStopPos.Y);
                     Thread.Sleep(2000);
+                    WaitForCursor();
 
                     // click the apply button
                     LeftMouseClick(rtSettings.TaskStopApplyPos.X, rtSettings.TaskStopApplyPos.Y);
                     Thread.Sleep(1000);
+                    WaitForCursor();
 
                     return false;
                 }
@@ -486,6 +477,7 @@ namespace BrightEdgeAutomationTool
         public const int KEYEVENTF_KEYDOWN = 0x0000; // New definition
         public const int KEYEVENTF_EXTENDEDKEY = 0x0001; //Key down flag
         public const int KEYEVENTF_KEYUP = 0x0002; //Key up flag
+        public const int VK_CONTROL = 0x11; //Left Control key code
         public const int VK_LCONTROL = 0xA2; //Left Control key code
         public const int VK_MENU = 0x12; //ALT key code
         public const int VK_DELETE = 0x2E; //DEL key code
@@ -501,11 +493,54 @@ namespace BrightEdgeAutomationTool
         public static void PressPaste()
         {
             // Hold Control down and press V
-            keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
+            /*keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYDOWN, 0);
+            Thread.Sleep(100);
             keybd_event(V, 0, KEYEVENTF_KEYDOWN, 0);
 
+            Thread.Sleep(100);
+
             keybd_event(V, 0, KEYEVENTF_KEYUP, 0);
-            keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP, 0);
+            Thread.Sleep(100);
+            keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);*/
+
+            SendKeys.SendWait("^{v}");
+        }
+
+        private static void UpdateStatusWithMessage(string keys)
+        {
+            MainWindow.UpdateStatus($"Keyboard {keys} Error#: " + Marshal.GetLastWin32Error().ToString());
+            MainWindow.UpdateStatus($"Keyboard {keys} Error Msg: " + new Win32Exception(Marshal.GetLastWin32Error()).Message);
+        }
+
+        public static void SaveCsv2(string filename)
+        {
+            HWNDHelper.BringWindowToFront(rankTrackerHandle);
+
+            HWNDHelper.FindAndBringFwd("Save");
+            AltN();
+            //UpdateStatusWithMessage("ALT+N");
+            Thread.Sleep(1000);
+            WaitForCursor();
+
+            CtrlA();
+            //UpdateStatusWithMessage("CTRL+A");
+            Thread.Sleep(1000);
+            WaitForCursor();
+
+            System.Windows.Clipboard.SetText(filename);
+            PressPaste();
+            //UpdateStatusWithMessage("CTRL+V");
+            Thread.Sleep(1000);
+            WaitForCursor();
+
+            PressEnter();
+            //UpdateStatusWithMessage("ENTER");
+            Thread.Sleep(3000);
+            WaitForCursor();
+            // Do not open folder
+            AltN();
+            //UpdateStatusWithMessage("ALT+N");
+            Thread.Sleep(1000);
         }
 
         public static void SaveCsv(string filename)
@@ -530,8 +565,13 @@ namespace BrightEdgeAutomationTool
             // Do not open folder
             AltN(); Thread.Sleep(1000);*/
 
+
+
+
+
+
             //HWNDHelper.FindAndBringFwd("Save");
-            AltN(); Thread.Sleep(1000);
+            /*AltN(); Thread.Sleep(1000);
             WaitForCursor();
             CtrlA(); Thread.Sleep(1000);
             WaitForCursor();
@@ -542,26 +582,47 @@ namespace BrightEdgeAutomationTool
             PressEnter(); Thread.Sleep(3000);
             WaitForCursor();
             // Do not open folder
-            AltN(); Thread.Sleep(1000);
+            AltN(); Thread.Sleep(1000);*/
+
+
+
+
+            // Trying SendKeys
+            SendKeys.SendWait("%{n}"); // ALT+n
+            Thread.Sleep(1000);
+            System.Windows.Clipboard.SetText(filename);
+            SendKeys.SendWait("^{v}"); // CTRL+v // Paste
+            Thread.Sleep(1000);
+            SendKeys.SendWait("{ENTER}"); //{ENTER}
+            Thread.Sleep(1000);
+            // Do not open folder
+            SendKeys.SendWait("%{n}"); // ALT+n
+            Thread.Sleep(1000);
         }
 
         public static void DeleteKeywords()
         {
-            //HWNDHelper.BringWindowToFront(rankTrackerHandle); Thread.Sleep(1000);
+            HWNDHelper.BringWindowToFront(rankTrackerHandle); Thread.Sleep(1000);
             // Click in the keyword table
-            //LeftMouseClick(718, 213); Thread.Sleep(1000);
             LeftMouseClick(rtSettings.KeywordTblPos.X, rtSettings.KeywordTblPos.Y);
+            Thread.Sleep(2000);
+            WaitForCursor();
+
+            //CtrlA(); Thread.Sleep(2000);
+            SendKeys.SendWait("^{a}");
+            Thread.Sleep(2000);
             //WaitForCursor();
 
-            CtrlA(); Thread.Sleep(2000);
-            //WaitForCursor();
-
-            PressDelete(); Thread.Sleep(3000);
+            //PressDelete(); Thread.Sleep(3000);
+            SendKeys.SendWait("{DELETE}");
+            Thread.Sleep(3000);
             //WaitForCursor();
             //HWNDHelper.FindAndBringFwd("Removal confirmation");
 
             //AltY(); Thread.Sleep(3000);
-            PressEnter(); Thread.Sleep(3000);
+            //PressEnter(); Thread.Sleep(3000);
+            SendKeys.SendWait("{ENTER}");
+            Thread.Sleep(3000);
 
             DeleteTasks();
         }
@@ -569,21 +630,23 @@ namespace BrightEdgeAutomationTool
         public static void AltN()
         {
             // Hold ALT down and press N
-            keybd_event(VK_MENU, 0, KEYEVENTF_KEYDOWN, 0);
+            /*keybd_event(VK_MENU, 0x45, KEYEVENTF_KEYDOWN, 0);
             Thread.Sleep(100);
-            keybd_event(N, 0, KEYEVENTF_KEYDOWN, 0);
+            keybd_event(N, 0x45, KEYEVENTF_KEYDOWN, 0);
 
             Thread.Sleep(300);
 
-            keybd_event(N, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(N, 0x45, KEYEVENTF_KEYUP, 0);
             Thread.Sleep(100);
-            keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(VK_MENU, 0x45, KEYEVENTF_KEYUP, 0);*/
+
+            SendKeys.SendWait("%{n}"); // ALT+n
         }
 
         public static void AltY()
         {
             // Hold ALT down and press Y
-            keybd_event(VK_MENU, 0, KEYEVENTF_KEYDOWN, 0);
+            /*keybd_event(VK_MENU, 0, KEYEVENTF_KEYDOWN, 0);
             Thread.Sleep(100);
             keybd_event(Y, 0, KEYEVENTF_KEYDOWN, 0);
 
@@ -591,13 +654,15 @@ namespace BrightEdgeAutomationTool
 
             keybd_event(Y, 0, KEYEVENTF_KEYUP, 0);
             Thread.Sleep(100);
-            keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);*/
+
+            SendKeys.SendWait("%{y}"); // ALT+n
         }
 
         public static void CtrlA()
         {
             // Hold Ctrl down and press A
-            keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
+            /*keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
             Thread.Sleep(100);
             keybd_event(A, 0, KEYEVENTF_KEYDOWN, 0);
 
@@ -605,29 +670,38 @@ namespace BrightEdgeAutomationTool
 
             keybd_event(A, 0, KEYEVENTF_KEYUP, 0);
             Thread.Sleep(100);
-            keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP, 0);*/
+
+            SendKeys.SendWait("^{a}"); // CTRL+a
         }
 
 
         public static void PressEnter()
         {
-            keybd_event(VK_RETURN, 0, KEYEVENTF_KEYDOWN, 0);
+            /*keybd_event(VK_RETURN, 0, KEYEVENTF_KEYDOWN, 0);
             Thread.Sleep(200);
-            keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0);*/
+            
+            SendKeys.SendWait("{ENTER}"); //{ENTER}
         }
 
         public static void PressDelete()
         {
-            keybd_event(VK_DELETE, 0, KEYEVENTF_KEYDOWN, 0);
+            /*keybd_event(VK_DELETE, 0, KEYEVENTF_KEYDOWN, 0);
             Thread.Sleep(200);
-            keybd_event(VK_DELETE, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(VK_DELETE, 0, KEYEVENTF_KEYUP, 0);*/
+
+            
+            SendKeys.SendWait("{DELETE}"); //{DELETE}
         }
 
         public static void PressEscape()
         {
-            keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYDOWN, 0);
+            /*keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYDOWN, 0);
             Thread.Sleep(200);
-            keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(VK_ESCAPE, 0, KEYEVENTF_KEYUP, 0);*/
+
+            SendKeys.SendWait("{ESC}"); //{ESCAPE}
         }
 
 
@@ -645,7 +719,7 @@ namespace BrightEdgeAutomationTool
         //This simulates a left mouse click
         public static void LeftMouseClick(int xpos, int ypos)
         {
-            var result = HWNDHelper.BlockInput(true);
+            //var result = HWNDHelper.BlockInput(true);
 
             //Console.WriteLine($"Block input: {result}");
 
@@ -654,7 +728,7 @@ namespace BrightEdgeAutomationTool
             Thread.Sleep(100);
             mouse_event(MOUSEEVENTF_LEFTUP, xpos, ypos, 0, 0);
 
-            HWNDHelper.BlockInput(false);
+            //HWNDHelper.BlockInput(false);
         }
 
 

@@ -36,7 +36,7 @@ namespace BrightEdgeAutomationTool
         {
             InitializeComponent();
 
-            RunAsAdmin(); // Can be removed for debugging
+            //RunAsAdmin(); // Can be removed for debugging
 
             SHGetKnownFolderPath(KnownFolder.Downloads, 0, IntPtr.Zero, out DownloadsFolder);
 
@@ -44,7 +44,7 @@ namespace BrightEdgeAutomationTool
             user = database.GetUser();
             AddUserFields();
 
-            CheckIfRankTrackerIsOpen();
+            //CheckIfRankTrackerIsOpen();
             /*Thread t = new Thread(() =>
             {
                 CheckIfRankTrackerIsOpen();
